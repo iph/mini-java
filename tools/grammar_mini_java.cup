@@ -1,0 +1,213 @@
+package tools;
+import java_cup.runtime.Symbol;
+import syntaxtree.*;
+
+/* Preliminaries to use the scanner.  */
+scan with {: Symbol tok = lexer.next_token(); return tok; :};
+
+parser code {:
+  JavaLex lexer;
+  public Program p;
+  public Parser(JavaLex lex) {
+      super(lex);
+      lexer = lex;
+
+  }
+:};
+
+terminal String IDENT;
+terminal INT, BOOLEAN, STRING, TRUE, FALSE, AND, PLUS, MINUS, TIMES, LESS;
+terminal Integer INT_LIT;
+terminal NOT, PUBLIC, STATIC, VOID, MAIN, EXTENDS, IF, WHILE, SYSTEM, OUT, PRINTLN, CLASS, RETURN, NEW, ELSE, LENGTH, THIS;
+terminal LBRACE, LSQBRACKET, LPAREN, RBRACE, RSQBRACKET, RPAREN, SEMICOLON;
+terminal COMMA, PERIOD, EQUAL;
+
+non terminal Program java_program;
+non terminal Type type;
+non terminal VarDecl var_decl;
+non terminal VarDeclList var_decls;
+non terminal MainClass main_class;
+non terminal Exp exp;
+non terminal ExpList exp_list, exp_rest;
+non terminal Statement statement;
+non terminal StatementList statements, full_states;
+non terminal FormalList formal_list, formal_rests, formal_total;
+non terminal Formal formal_rest;
+non terminal MethodDecl method_decl;
+non terminal MethodDeclList method_decls;
+non terminal ClassDecl class_decl;
+non terminal ClassDeclList class_decls;
+
+precedence left AND;
+precedence left PLUS, MINUS;
+precedence left TIMES;
+precedence right RPAREN, RBRACE, RSQBRACKET;
+precedence right LPAREN, LBRACE, LSQBRACKET;
+precedence left LESS;
+precedence right NOT;
+start with java_program;
+java_program ::= main_class:m class_decls:cList
+            {:RESULT = new Program(m, cList); this.parser.p = RESULT;:}
+            ;
+main_class  ::= CLASS IDENT:id1 LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LSQBRACKET RSQBRACKET IDENT:id2 RPAREN LBRACE statement:as RBRACE RBRACE
+            {:RESULT = new MainClass(new Identifier(id1), new Identifier(id2), as);:}
+            ;
+class_decls ::= class_decl:c class_decls:cList
+            {:cList.addElement(c); RESULT= cList;:}
+            |
+            {:RESULT = new ClassDeclList();:}
+            ;
+class_decl  ::= CLASS IDENT:id LBRACE var_decls:vList method_decls:mList RBRACE
+            {:RESULT = new ClassDeclSimple(new Identifier(id), vList, mList);:}
+            |   CLASS IDENT:id EXTENDS IDENT:id2 LBRACE var_decls:vList method_decls:mList RBRACE
+            {:RESULT = new ClassDeclExtends(new Identifier(id), new Identifier(id2), vList, mList);:}
+            | error RBRACE
+            {: System.out.println("Im a robot error");:}
+            ;
+var_decls   ::= var_decls:curlist var_decl:item
+            {:curlist.addElement(item); RESULT = curlist;:}
+            |
+            {:RESULT = new VarDeclList(); :}
+            | error SEMICOLON
+            {:System.out.println("VARDECLZZzZZZ");:}
+            ;
+var_decl    ::= type:t IDENT:id SEMICOLON
+            {:RESULT = new VarDecl(t, new Identifier(id));:}
+           ;
+method_decls::= method_decls:mList method_decl:m
+            {:mList.addElement(m); RESULT = mList;:}
+            |
+            {:RESULT = new MethodDeclList();:}
+            ;
+method_decl ::= PUBLIC type:t IDENT:id formal_total:fList LBRACE var_decls:vList full_states:sList RETURN exp:e SEMICOLON RBRACE
+           {:RESULT = new MethodDecl(t, new Identifier(id), fList, vList, sList, e);:}
+            |
+            error RBRACE
+            {:System.out.println(" YAR ERROR MATEY");:}
+            ;
+formal_total ::= LPAREN formal_list:fList RPAREN
+            {: RESULT = fList; :}
+            | error RPAREN
+            {:System.out.println("GAAHGAKLGDH");:}
+            ;
+formal_list ::= type:t IDENT:id formal_rests:fList
+            {:
+                FormalList temp = new FormalList();
+                Formal f = new Formal(t,new Identifier(id)); 
+                temp.addElement(f);
+                for(int i = 0; i < fList.size(); i++){
+                    temp.addElement(fList.elementAt(i));
+                }
+                RESULT = temp;:}
+            |
+            {:RESULT = new FormalList();:}
+            {:System.out.println("HIT A RIGHT PAREN?");:}
+            ;
+formal_rests::= formal_rests:fList formal_rest:f
+            {:
+                fList.addElement(f); RESULT = fList;
+            
+            
+            :}
+            |
+            {:RESULT = new FormalList();:}
+            ;
+formal_rest ::= COMMA type:t IDENT:id
+            {:RESULT = new Formal(t, new Identifier(id));:}
+            ;
+type        ::= INT LSQBRACKET RSQBRACKET
+                {:RESULT = new IntArrayType();:}
+            |   BOOLEAN
+                {:RESULT = new BooleanType();:}
+            |   INT
+                {:RESULT = new IntegerType();:}
+            |   IDENT:id
+                {:RESULT = new IdentifierType(id);:}
+            ;
+full_states ::= statements:sList
+            {: StatementList atBegin = new StatementList();
+                for(int i = sList.size()-1; i >= 0; i--){
+                    atBegin.addElement(sList.elementAt(i));
+                }
+                RESULT = atBegin;
+            :}
+            ;
+statements  ::= statement:s statements:sList
+            {:  sList.addElement(s); RESULT = sList; :}
+            |
+            {:RESULT = new StatementList();:}
+            ;
+statement   ::= LBRACE full_states:sList RBRACE
+            {:RESULT = new Block(sList);:}
+            | IF LPAREN exp:e RPAREN statement:s ELSE statement:s2
+            {:RESULT = new If(e, s, s2);:}
+            |   WHILE LPAREN exp:e RPAREN statement:s
+            {:RESULT = new While(e, s);:}
+            |   SYSTEM PERIOD OUT PERIOD PRINTLN LPAREN exp:e RPAREN SEMICOLON
+            {:RESULT = new Print(e);:}
+            |   IDENT:id EQUAL exp:e SEMICOLON
+            {:RESULT = new Assign(new Identifier(id), e);:}
+            |   IDENT:id LSQBRACKET exp:e1 RSQBRACKET EQUAL exp:e2 SEMICOLON
+            {:RESULT = new ArrayAssign(new Identifier(id), e1, e2); :}
+            |
+            error SEMICOLON
+            {:System.out.println("ERROR!");:}
+            ;
+exp         ::=  exp:e1 LESS exp:e2
+            {:RESULT = new LessThan(e1,e2);:}
+            | exp:e1 AND exp:e2
+            {:RESULT = new And(e1, e2);:}
+            | exp:e1 PLUS exp:e2
+            {:RESULT = new Plus(e1, e2);:}
+            | exp:e1 MINUS exp:e2
+            {:RESULT = new Minus(e1, e2);:}
+            | exp:e1 TIMES exp:e2
+            {:RESULT = new Times(e1, e2);:}
+            | exp:e1 LSQBRACKET exp:e2 RSQBRACKET
+            {:RESULT = new ArrayLookup(e1, e2);:}
+            | exp:e PERIOD LENGTH
+            {:RESULT = new ArrayLength(e);:}
+            | exp:e PERIOD IDENT:id LPAREN exp_list:eList RPAREN
+            {:RESULT = new Call(e, new Identifier(id), eList);:}
+            | INT_LIT:ai
+            {:RESULT = new IntegerLiteral(ai);:}
+            | PLUS INT_LIT:ai
+            {:RESULT = new IntegerLiteral(ai);:}
+            | MINUS INT_LIT:ai
+            {:RESULT = new IntegerLiteral(-ai);:}
+            | TRUE
+            {:RESULT = new True();:}
+            | FALSE
+            {:RESULT = new False();:}
+            | IDENT:id
+            {:RESULT = new IdentifierExp(id);:}
+            | THIS
+            {:RESULT = new This();:}
+            | NEW INT LSQBRACKET exp:e RSQBRACKET
+            {:RESULT = new NewArray(e);:}
+            | NEW IDENT:id LPAREN RPAREN
+            {:RESULT = new NewObject(new Identifier(id)); :}
+            | NOT exp:ex
+            {:RESULT = new Not(ex);:}
+            | LPAREN exp:e RPAREN
+            {:RESULT = e; :}
+
+            ;
+exp_list    ::= exp:e exp_rest:eList
+            {:
+                ExpList temp = new ExpList();
+                temp.addElement(e);
+                for(int i = 0; i < eList.size(); i++){
+                    temp.addElement(eList.elementAt(i));
+                }
+                RESULT = temp;
+                
+                
+            :}
+            |{:RESULT = new ExpList();:}
+            ;
+exp_rest    ::=  exp_rest:eList COMMA exp:e
+            {:eList.addElement(e); RESULT = eList;:}
+            |
+            {:RESULT = new ExpList();:}
+            ;
