@@ -1,0 +1,392 @@
+/**
+ * Parser for MiniJava specification
+ */
+package tools;
+import java.util.*;
+import java_cup.runtime.Symbol;
+import syntaxtree.*;
+import visitor.*;
+
+scan with 
+{: 
+    return lexer.next_token(); 
+:};
+
+parser code
+{: 
+    MiniJavaLexer lexer;
+
+    public MiniJavaParser(MiniJavaLexer lex) { 
+        super(lex); 
+        lexer = lex;
+    }
+
+    public void report_error(String message, Object info) {
+        if (info == null || info instanceof Symbol)
+            return;
+
+        MJToken token = (MJToken)info;
+        System.out.printf(message + " at line %d, column %d\n", token.line, token.column);
+    }
+:};
+
+terminal MJToken DOT, COMMA, SEMI;
+terminal MJToken ASSIGN, NOT, AND, LESSTHAN, PLUS, MINUS, TIMES;
+terminal MJToken LPAREN, RPAREN;
+terminal MJToken LCURLY, RCURLY;
+terminal MJToken LBRACKET, RBRACKET;
+terminal MJToken CLASS, PUBLIC, STATIC, VOID, MAIN, EXTENDS;
+terminal MJToken STRING;
+terminal MJToken RETURN;
+terminal MJToken IF, ELSE, WHILE;
+terminal MJToken PRINTLN;
+terminal MJToken LENGTH;
+terminal MJToken THIS;
+terminal MJToken NEW;
+terminal MJToken BOOLEANTYPE, INTTYPE;
+terminal MJToken BOOLEAN;
+terminal MJToken INTEGER;
+terminal MJToken IDENTIFIER;
+
+non terminal Program program;
+non terminal MainClass main_class;
+non terminal ClassDeclList class_decl_list;
+non terminal ClassDecl class_decl;
+non terminal StatementList statement_list;
+non terminal VarDeclList var_decl_list;
+non terminal MethodDeclList method_decl_list;
+non terminal VarDecl var_decl;
+non terminal MethodDecl method_decl;
+non terminal FormalList formal_header;
+non terminal FormalList formal_list;
+non terminal Formal formal_rest;
+non terminal FormalList formal_rest_list;
+non terminal Type type;
+non terminal Statement statement;
+non terminal Exp expression;
+non terminal ExpList expression_list;
+non terminal Exp expression_rest;
+non terminal ExpList expression_rest_list;
+non terminal Identifier identifier;
+non terminal Integer integer;
+
+precedence right ASSIGN;
+precedence left AND;
+precedence left LESSTHAN;
+precedence left PLUS, MINUS;
+precedence left TIMES;
+precedence right NOT;
+precedence left DOT, LBRACKET, RBRACKET;
+
+start with program;
+
+program              ::= main_class:mainClass class_decl_list:classes
+                         {: 
+                            RESULT = new Program(mainClass, classes); 
+                         :}
+                       ;
+
+main_class           ::= CLASS identifier:name
+                         LCURLY PUBLIC STATIC VOID MAIN 
+                         LPAREN STRING LBRACKET RBRACKET identifier:arg RPAREN
+                         LCURLY statement:stmt RCURLY
+                         RCURLY
+                         {: 
+                            RESULT = new MainClass(name, arg, stmt); 
+                         :}
+                       ;
+
+class_decl_list      ::= class_decl_list:classes class_decl:classDecl
+                         {: 
+                            classes.addElement(classDecl);
+                            RESULT = classes;
+                         :}
+                       | /* epsilon */
+                         {:
+                            RESULT = new ClassDeclList();
+                         :}
+                       ;
+
+class_decl           ::= CLASS identifier:name EXTENDS identifier:parentName
+                         LCURLY var_decl_list:vars method_decl_list:methods RCURLY
+                         {:
+                            RESULT = new ClassDeclExtends(name, parentName, vars, methods); 
+                         :}
+                       | CLASS identifier:name
+                         LCURLY var_decl_list:vars method_decl_list:methods RCURLY
+                         {:
+                            RESULT = new ClassDeclSimple(name, vars, methods); 
+                         :}
+                       | error RCURLY:e
+                         {:
+                            parser.report_error("Parse error", e);
+                         :}
+                       ;
+
+statement_list       ::= statement:stmt statement_list:statements
+                         {:
+                            RESULT = new StatementList();
+                            RESULT.addElement(stmt);
+                            for (int i = 0; i < statements.size(); i++) {
+                                RESULT.addElement(statements.elementAt(i));
+                            }
+                         :}
+                       | /* epsilon */
+                         {:
+                            RESULT = new StatementList();
+                         :}
+                       ;
+
+var_decl_list        ::= var_decl_list:vars var_decl:varDecl
+                         {:
+                            vars.addElement(varDecl);
+                            RESULT = vars;
+                         :}
+                       | /* epsilon */
+                         {:
+                            RESULT = new VarDeclList();
+                         :}
+                       ;
+
+method_decl_list     ::= method_decl_list:methods method_decl:methodDecl
+                         {:
+                            methods.addElement(methodDecl);
+                            RESULT = methods;
+                         :}
+                       | /* epsilon */
+                         {:
+                            RESULT = new MethodDeclList();
+                         :}
+                       ;
+
+var_decl             ::= type:t identifier:name SEMI
+                         {:
+                            RESULT = new VarDecl(t, name); 
+                         :}
+                       | type error SEMI:e
+                         {:
+                            parser.report_error("Parse error", e);
+                         :}
+                       ;
+
+method_decl          ::= PUBLIC type:returnType identifier:name formal_header:formals 
+                         LCURLY var_decl_list:vars statement_list:statements RETURN expression:exp SEMI RCURLY
+                         {:
+                            RESULT = new MethodDecl(returnType, name, formals, vars, statements, exp);
+                         :}
+                       | error RCURLY:e
+                         {:
+                            parser.report_error("Parse error", e);
+                         :}
+                       ;
+
+formal_header        ::= LPAREN formal_list:formals RPAREN
+                         {:
+                            RESULT = formals;
+                         :}
+                       | error RPAREN:e
+                         {:
+                            parser.report_error("Parse error", e);
+                         :}
+                       ;
+
+formal_list          ::= type:t identifier:name formal_rest_list:formals
+                         {:
+                            RESULT = new FormalList();
+                            RESULT.addElement(new Formal(t, name));
+                            for (int i = 0; i < formals.size(); i++) {
+                                RESULT.addElement(formals.elementAt(i));
+                            }
+                         :}
+                       | /* epsilon */
+                         {:
+                            RESULT = new FormalList();
+                         :}
+                       ;
+
+formal_rest          ::= COMMA type:t identifier:name
+                         {:
+                            RESULT = new Formal(t, name);
+                         :}
+                       ;
+
+formal_rest_list     ::= formal_rest_list:formals formal_rest:formal
+                         {:
+                            formals.addElement(formal);
+                            RESULT = formals;
+                         :}
+                       | /* epsilon */
+                         {:
+                            RESULT = new FormalList();
+                         :}
+                       ;
+
+type                 ::= INTTYPE LBRACKET RBRACKET
+                         {:
+                            RESULT = new IntArrayType();
+                         :}
+                       | INTTYPE
+                         {:
+                            RESULT = new IntegerType();
+                         :}
+                       | BOOLEANTYPE
+                         {:
+                            RESULT = new BooleanType();
+                         :}
+                       | IDENTIFIER:userClass
+                         {:
+                            RESULT = new IdentifierType((String)(userClass.value));
+                         :}
+                       ;
+
+statement            ::= LCURLY statement_list:statements RCURLY
+                         {:
+                            RESULT = new Block(statements);
+                         :}
+                       | IF LPAREN expression:exp RPAREN statement:ifStmt ELSE statement:elseStmt
+                         {:
+                            RESULT = new If(exp, ifStmt, elseStmt);
+                         :}
+                       | WHILE LPAREN expression:exp RPAREN statement:stmt
+                         {:
+                            RESULT = new While(exp, stmt);
+                         :}
+                       | PRINTLN LPAREN expression:exp RPAREN SEMI
+                         {:
+                            RESULT = new Print(exp);
+                         :}
+                       | identifier:var ASSIGN expression:exp SEMI
+                         {:
+                            RESULT = new Assign(var, exp);
+                         :}
+                       | identifier:var LBRACKET expression:index RBRACKET ASSIGN expression:exp SEMI
+                         {:
+                            RESULT = new ArrayAssign(var, index, exp);
+                         :}
+                       | error SEMI:e
+                         {:
+                            parser.report_error("Parse error", e);
+                         :}
+                       ;
+
+expression           ::= expression:exp1 AND expression:exp2
+                         {:
+                            RESULT = new And(exp1, exp2);
+                         :}
+                       | expression:exp1 LESSTHAN expression:exp2
+                         {:
+                            RESULT = new LessThan(exp1, exp2);
+                         :}
+                       | expression:exp1 PLUS expression:exp2
+                         {:
+                            RESULT = new Plus(exp1, exp2);
+                         :}
+                       | expression:exp1 MINUS expression:exp2
+                         {:
+                            RESULT = new Minus(exp1, exp2);
+                         :}
+                       | expression:exp1 TIMES expression:exp2
+                         {:
+                            RESULT = new Times(exp1, exp2);
+                         :}
+                       | expression:exp LBRACKET expression:index RBRACKET
+                         {:
+                            RESULT = new ArrayLookup(exp, index);
+                         :}
+                       | expression:exp DOT LENGTH
+                         {:
+                            RESULT = new ArrayLength(exp);
+                         :}
+                       | expression:exp DOT identifier:method LPAREN expression_list:exprs RPAREN
+                         {:
+                            RESULT = new Call(exp, method, exprs);
+                         :}
+                       | expression:exp DOT identifier:method error RPAREN:e
+                         {:
+                            parser.report_error("Parser error", e);
+                         :}
+                       | integer:i
+                         {:
+                            RESULT = new IntegerLiteral(i.intValue());
+                         :}
+                       | BOOLEAN:b
+                         {:
+                            RESULT = new False();
+                            if (((Boolean)b.value).booleanValue()) RESULT = new True();
+                         :}
+                       | IDENTIFIER:var
+                         {:
+                            RESULT = new IdentifierExp((String)(var.value));
+                         :}
+                       | THIS
+                         {:
+                            RESULT = new This();
+                         :}
+                       | NEW INTTYPE LBRACKET expression:exp RBRACKET
+                         {:
+                            RESULT = new NewArray(exp);
+                         :}
+                       | NEW identifier:userClass LPAREN RPAREN
+                         {:
+                            RESULT = new NewObject(userClass);
+                         :}
+                       | NOT expression:exp
+                         {:
+                            RESULT = new Not(exp);
+                         :}
+                       | LPAREN expression:exp RPAREN
+                         {:
+                            RESULT = exp;
+                         :}
+                       ;
+
+expression_list      ::= expression:exp expression_rest_list:exprs
+                         {:
+                            RESULT = new ExpList();
+                            RESULT.addElement(exp);
+                            for (int i = 0; i < exprs.size(); i++) {
+                                RESULT.addElement(exprs.elementAt(i));
+                            }
+                         :}
+                       | /* epsilon */
+                         {:
+                            RESULT = new ExpList();
+                         :}
+                       ;
+
+expression_rest      ::= COMMA expression:exp
+                         {:
+                            RESULT = exp;
+                         :}
+                       ;
+
+expression_rest_list ::= expression_rest_list:exprs expression_rest:exp
+                         {:
+                            exprs.addElement(exp);
+                            RESULT = exprs;
+                         :}
+                       | /* epsilon */
+                         {:
+                            RESULT = new ExpList();
+                         :}
+                       ;
+
+identifier           ::= IDENTIFIER:id
+                         {:
+                            RESULT = new Identifier((String)(id.value)); 
+                         :}
+                       ;
+
+integer              ::= INTEGER:i
+                         {:
+                            RESULT = (Integer)(i.value);
+                         :}
+                       | PLUS INTEGER:i
+                         {:
+                            RESULT = (Integer)(i.value);
+                         :}
+                       | MINUS INTEGER:i
+                         {:
+                            RESULT = new Integer(-((Integer)(i.value)).intValue());
+                         :}
+                       ;
