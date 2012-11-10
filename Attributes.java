@@ -1,7 +1,7 @@
-public abstract class Attributes {
+public abstract class Attribute{
 	private int line, column;
 
-	public Attributes(int l, int c) {
+	public Attribute(int l, int c) {
 		line = l;
 		column = c;
 	}
@@ -15,55 +15,76 @@ public abstract class Attributes {
 	}
 }
 
-class ClassAttributes extends Attributes {
-	private ArrayList<VariableAttributes> variableList;
-	private ArrayList<MethodAttributes> methodList;
+class ClassAttribute extends Attribute {
+	private HashMap<String, VariableAttribute> variables;
+	private HashMap<String, MethodAttribute> methods;
 
-	public ClassAttributes(int line, int col, ArrayList<VariableAttributes> varList, ArrayList<MethodAttributes> mList) {
+	public ClassAttribute(int line, int col) {
 		super(line, col);
-		variableList = varList;
+		variables = new HashMap<String, VariableAttribute>();
 		methodList = mList;
 	}
 
-	public ArrayList<VariableAttributes> getVariableList() {
-		return variableList;
+	public void addMethod(String name, MethodAttribute m){
+		methods.put(name, m);
 	}
 
-	public ArrayList<MethodAttributes> getMethodList() {
-		return methodList;
+	public void addVariable(String name, VariableAttribute v){
+		variables.put(name, v);
 	}
+
+	public MethodAttribute getMethod(String methodName){
+		return methods.get(methodName);
+	}
+
+	public boolean hasMethod(String methodName){
+		return methods.get(methodName) == null;
+	}
+
+	public VariableAttribute getVariable(String variableName){
+		return variables.get(variableName);
+	}
+
+	public boolean hasVariable(String variableName){
+		return variables.get(variableName) == null;
+	}
+
 }
 
-class MethodAttributes extends Attributes {
+class MethodAttribute extends Attribute {
 	private String returnType;
-	private ArrayList<VariableAttributes> parameterList;
+	private ArrayList<VariableAttribute> parameterList;
 
-	public MethodAttributes(int line, int col, String retType, ArrayList<VariableAttributes> paramList) {
+	public MethodAttribute(int line, int col, String retType) {
 		super(line, col);
 		returnType = retType;
 		parameterList = paramList;
+	}
+
+	public void addParameter(VariableAttribute v){
+		parameterList.add(v);
 	}
 
 	public String getReturnType() {
 		return returnType;
 	}
 
-	public ArrayList<VariableAttributes> getParameterList() {
-		return parameterList;
+	public VariableAttribute getParameter(int position) {
+		return parameterList.get(position);
 	}
 }
 
-class VariableAttributes extends Attributes {
+class VariableAttribute extends Attribute {
 	private String type;
 	private int size; // this may only be relevant for arrays
 
-	public VariableAttributes(int line, int col, String t) {
+	public VariableAttribute(int line, int col, String t) {
 		super(line, col);
 		type = t;
 		size = 0;
 	}
 
-	public VariableAttributes(int line, int col, String t, int s) {
+	public VariableAttribute(int line, int col, String t, int s) {
 		super(line, col);
 		type = t;
 		size = s;
@@ -73,6 +94,9 @@ class VariableAttributes extends Attributes {
 		return type;
 	}
 
+	public boolean isSameType(String otherType){
+		return type.equalsIgnoreCase(otherType);
+	}
 	public int getSize() {
 		return size;
 	}

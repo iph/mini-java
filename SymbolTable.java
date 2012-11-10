@@ -63,5 +63,9 @@ public class SymbolTable {
 
     }
 
+    public boolean hasId(String id){
+        return environment.containsKey(id);
+    }
+
 
 }
