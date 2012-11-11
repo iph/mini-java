@@ -10,6 +10,9 @@ public class SymbolTable {
         //TODO: Add System.out.println symbols here.
 	}
 
+    public String toString(){
+        return environment.toString();
+    }
     /*
      * starts the symbol stack with a null value as a delimiter for the new scope.
      */

@@ -1,5 +1,7 @@
-import java.util.Hashtable;
+import java.util.*;
 import tools.MJToken;
+import syntaxtree.*;
+import visitor.*;
 
 public class SymbolTableBuilder implements Visitor {
 	SymbolTable symbolTable;
@@ -13,60 +15,63 @@ public class SymbolTableBuilder implements Visitor {
 		location = l;
 	}
 
-	public getSymbolTable() {
+	public SymbolTable getSymbolTable() {
 		return symbolTable;
 	}
 
 	public void checkRedefinition(String id, MJToken token){
 		if(symbolTable.hasId(id)){
-			System.out.printf("Multiply defined identifier %s at line %d, character %d", id, token.left, token.right);
+			System.out.printf("Multiply defined identifier %s at line %d, character %d", id, token.line, token.column);
 			System.exit(0);
 		}
 	}
 	// Shit we do need to do.
 	public void visit(Program n){
-		n.m.accept(this)
-		for(int i = 0; i < n.c1.size(); i++){
-			n.c1.elementAt(i).accept(this);
+		n.m.accept(this);
+		for(int i = 0; i < n.cl.size(); i++){
+			n.cl.elementAt(i).accept(this);
 		}
 	}
 	public void visit(MainClass n){
-		MJToken curLocation = location.get(n.i1)
-		checkRedefinition(n.i1, curLocation);
-		ClassAttribute cls = new ClassAttribute(curLocation.left, curLocation.right);
+		MJToken curLocation = location.get(n.i1);
+		checkRedefinition(n.i1.s, curLocation);
+		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
 
 		//TODO: Do we include args identifier? There is no method...damnit!
 		// THERE ARE NO STRINGS! WHAT TYPE ARE YOU?
-		symbolTable.put(id, cls);
+		symbolTable.put(n.i1.s, cls);
 	}
 	/**
 	* The basics for class
 	*/
 	public void visit(ClassDeclSimple n) {
-		MJToken curLocation = location.get(n.i)
-		checkRedefinition(n.i1, curLocation)
-		ClassAttribute cls = new ClassAttribute(curLocation.left, curLocation.right);
+		MJToken curLocation = location.get(n.i);
+		checkRedefinition(n.i.s, curLocation);
+		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
 
-		//TODO create all the variable attributes in the stack.
-		for(int i = 0; i < n.v1.size(); i++){
-			VarDecl v = n.v1.elementAt(i);
-			checkRedefinition(v.i, location.get(v.i));
-			v.visit(this);
-
-			VariableAttribute v = (VariableAttribute) symbols.pop();
-			cls.addVariable(v);
+		for(int i = 0; i < n.vl.size(); i++){
+			VarDecl v = n.vl.elementAt(i);
+            if(cls.hasVariable(v.i.s)){
+                System.err.println("HOLY SHIT!");
+                System.exit(0);
+            }
+			v.accept(this);
+			VariableAttribute variable = (VariableAttribute) symbols.pop();
+			cls.addVariable(v.i.s, variable);
 
 		}
 		//TODO create all the method attributes in the stack.
 
 
-		symbolTable.put(id, cls);
+		symbolTable.put(n.i.s, cls);
 	}
 	public void visit(ClassDeclExtends n) {
 
 	}
 	public void visit(VarDecl n){
-
+        MJToken curLocation = location.get(n.i);
+        VariableAttribute variable = new VariableAttribute(curLocation.line, curLocation.column, "int");
+        symbols.push(variable);
 	}
 	public void visit(MethodDecl n) {
 

@@ -15,7 +15,7 @@ scan with
 parser code
 {: 
     MiniJavaLexer lexer;
-    HashMap<Object, MJToken> location;
+    public HashMap<Object, MJToken> location;
     public MiniJavaParser(MiniJavaLexer lex) { 
         super(lex); 
         location = new HashMap<Object, MJToken>();
