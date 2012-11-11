@@ -70,7 +70,21 @@ public class SymbolTableBuilder implements Visitor {
 	}
 	public void visit(VarDecl n){
         MJToken curLocation = location.get(n.i);
-        VariableAttribute variable = new VariableAttribute(curLocation.line, curLocation.column, "int");
+        String type;
+        if(n.t instanceof IntArrayType){
+            type = "int array";
+        }
+        else if(n.t instanceof IntegerType){
+            type = "int";
+        }
+        else if(n.t instanceof BooleanType){
+            type = "boolean";
+        }
+        else{
+            IdentifierType id= (IdentifierType)n.t;
+            type = id.s;
+        }
+        VariableAttribute variable = new VariableAttribute(curLocation.line, curLocation.column, type);
         symbols.push(variable);
 	}
 	public void visit(MethodDecl n) {
