@@ -7,12 +7,13 @@ public class SymbolTableBuilder implements Visitor {
 	SymbolTable symbolTable;
 	Stack <Object> symbols;
 	HashMap<Object, MJToken> location;
+    boolean hasError;
 
 	public SymbolTableBuilder(HashMap<Object, MJToken> l) {
 		symbolTable = new SymbolTable();
-		symbolTable.startScope();
 		symbols = new Stack<Object>();
 		location = l;
+        hasError = false;
 	}
 
 	public SymbolTable getSymbolTable() {
@@ -20,13 +21,33 @@ public class SymbolTableBuilder implements Visitor {
 	}
 
 	public void checkRedefinition(String id, MJToken token){
+
 		if(symbolTable.hasId(id)){
 			System.out.printf("Multiply defined identifier %s at line %d, character %d", id, token.line, token.column);
-			System.exit(0);
+            hasError = true;
 		}
 	}
+
+    public String getType(Type t){
+        String type;
+        if(t instanceof IntArrayType){
+            type = "int array";
+        }
+        else if(t instanceof IntegerType){
+            type = "int";
+        }
+        else if(t instanceof BooleanType){
+            type = "boolean";
+        }
+        else{
+            IdentifierType id= (IdentifierType)t;
+            type = id.s;
+        }
+        return type;
+    }
 	// Shit we do need to do.
 	public void visit(Program n){
+        symbolTable.startScope();
 		n.m.accept(this);
 		for(int i = 0; i < n.cl.size(); i++){
 			n.cl.elementAt(i).accept(this);
@@ -36,58 +57,59 @@ public class SymbolTableBuilder implements Visitor {
 		MJToken curLocation = location.get(n.i1);
 		checkRedefinition(n.i1.s, curLocation);
 		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
+		symbolTable.put(n.i1.s, cls);
 
 		//TODO: Do we include args identifier? There is no method...damnit!
 		// THERE ARE NO STRINGS! WHAT TYPE ARE YOU?
-		symbolTable.put(n.i1.s, cls);
 	}
 	/**
 	* The basics for class
 	*/
 	public void visit(ClassDeclSimple n) {
 		MJToken curLocation = location.get(n.i);
+
 		checkRedefinition(n.i.s, curLocation);
 		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
+		symbolTable.put(n.i.s, cls);
+        symbolTable.startScope();
 
+        // Add all class variable definitions.
 		for(int i = 0; i < n.vl.size(); i++){
 			VarDecl v = n.vl.elementAt(i);
-            if(cls.hasVariable(v.i.s)){
-                System.err.println("HOLY SHIT!");
-                System.exit(0);
-            }
+            checkRedefinition(v.i.s, location.get(v.i));
 			v.accept(this);
 			VariableAttribute variable = (VariableAttribute) symbols.pop();
 			cls.addVariable(v.i.s, variable);
+            symbolTable.put(v.i.s, variable);
 
 		}
-		//TODO create all the method attributes in the stack.
 
+        // Add all method declarations, and check their scope shit as well.
+        for(int i = 0; i < n.ml.size(); i++){
+            MethodDecl m = n.ml.elementAt(i);
+            checkRedefinition(m.i.s, location.get(m.i));
+            m.accept(this);
+            MethodAttribute method = (MethodAttribute) symbols.pop();
+            cls.addMethod(m.i.s, method);
+            symbolTable.put(m.i.s, method);
 
-		symbolTable.put(n.i.s, cls);
+        }
+        symbolTable.endScope();
+        System.out.println(symbolTable);
 	}
 	public void visit(ClassDeclExtends n) {
 
 	}
 	public void visit(VarDecl n){
         MJToken curLocation = location.get(n.i);
-        String type;
-        if(n.t instanceof IntArrayType){
-            type = "int array";
-        }
-        else if(n.t instanceof IntegerType){
-            type = "int";
-        }
-        else if(n.t instanceof BooleanType){
-            type = "boolean";
-        }
-        else{
-            IdentifierType id= (IdentifierType)n.t;
-            type = id.s;
-        }
+        String type = getType(n.t);
         VariableAttribute variable = new VariableAttribute(curLocation.line, curLocation.column, type);
         symbols.push(variable);
 	}
 	public void visit(MethodDecl n) {
+        MJToken curLocation = location.get(n.i);
+        String retType = getType(n.t);
+        MethodAttribute method = new MethodAttribute(curLocation.line, curLocation.column, retType);
 
 	}
 	public void visit(Formal n){

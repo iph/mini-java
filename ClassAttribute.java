@@ -23,7 +23,7 @@ class ClassAttribute extends Attribute {
 	}
 
 	public boolean hasMethod(String methodName){
-		return methods.get(methodName) == null;
+		return methods.containsKey(methodName);
 	}
 
 	public VariableAttribute getVariable(String variableName){
@@ -31,7 +31,7 @@ class ClassAttribute extends Attribute {
 	}
 
 	public boolean hasVariable(String variableName){
-		return variables.get(variableName) == null;
+        return variables.containsKey(variableName);
 	}
 
 }

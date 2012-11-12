@@ -7,7 +7,6 @@ public class SymbolTable {
 	public SymbolTable() {
         environment = new HashMap<String, LinkedList<Object>>();
         symbolStack = new Stack<String>();
-        //TODO: Add System.out.println symbols here.
 	}
 
     public String toString(){
@@ -57,12 +56,16 @@ public class SymbolTable {
      * Undoes all symbols put on in this scope.
      */
     public void endScope(){
-        String currentSymbol;
-        do{
+        String currentSymbol = symbolStack.pop();
+        System.out.println(symbolStack);
+        while(currentSymbol != null){
+            LinkedList<Object> poppable = environment.get(currentSymbol);
+            poppable.pop();
+            if(poppable.size() == 0){
+                environment.remove(currentSymbol);
+            }
             currentSymbol = symbolStack.pop();
-            environment.get(currentSymbol).pop();
         }
-        while(currentSymbol != null);
 
     }
 

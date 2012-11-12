@@ -11,7 +11,6 @@ class BubbleSort{
 class BBS{
 
     int[] number ;
-    int size ;
     int size;
 
     // Invoke the Initialization, Sort and Printing
@@ -73,7 +72,7 @@ class BBS{
     }
 
     // Initialize array of integers
-    public int Init(int sz, int sz2){
+    public int Init(int sz){
 	size = sz ;
 	number = new int[sz] ;
 
