@@ -34,6 +34,14 @@ class ClassAttribute extends Attribute {
         return variables.containsKey(variableName);
 	}
 
+    public void getInMyScope(SymbolTable table){
+        for(String id: variables.keySet()){
+            table.put(id, variables.get(id));
+        }
+        for(String id: methods.keySet()){
+            table.put(id, methods.get(id));
+        }
+    }
 }
 
 

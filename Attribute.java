@@ -1,3 +1,4 @@
+
 public abstract class Attribute{
 	private int line, column;
 
@@ -13,6 +14,7 @@ public abstract class Attribute{
 	public int getColumn() {
 		return column;
 	}
+
 }
 
 
