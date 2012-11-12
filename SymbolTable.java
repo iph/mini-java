@@ -57,7 +57,6 @@ public class SymbolTable {
      */
     public void endScope(){
         String currentSymbol = symbolStack.pop();
-        System.out.println(symbolStack);
         while(currentSymbol != null){
             LinkedList<Object> poppable = environment.get(currentSymbol);
             poppable.pop();

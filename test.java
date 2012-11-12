@@ -12,11 +12,13 @@ class BBS{
 
     int[] number ;
     int size;
+    int size;
 
     // Invoke the Initialization, Sort and Printing
     // Methods
-    public int Start(int sz){
+    public int Start(int sz, int sz){
 	int aux01 ;
+    int aux01;
 	aux01 = this.Init(sz);
 	aux01 = this.Print();
 	System.out.println(99999);
@@ -25,6 +27,10 @@ class BBS{
 	return 0 ;
     }
 
+    public int Sort(){
+
+        return 0;
+    }
 
     // Sort array of integers using Bublesort method
     public int Sort(){
