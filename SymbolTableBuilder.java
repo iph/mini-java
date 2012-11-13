@@ -20,12 +20,8 @@ public class SymbolTableBuilder implements Visitor {
 		return symbolTable;
 	}
 
-	public void checkRedefinition(String id, MJToken token){
-
-		if(symbolTable.hasId(id)){
-			System.out.printf("Multiply defined identifier %s at line %d, character %d\n", id, token.line, token.column);
-            hasError = true;
-		}
+	public void errorRedefinition(String id, int line, int column){
+			System.out.printf("Multiply defined identifier %s at line %d, character %d\n", id, line, column);
 	}
 
     public String getType(Type t){
@@ -55,11 +51,12 @@ public class SymbolTableBuilder implements Visitor {
 	}
 	public void visit(MainClass n){
 		MJToken curLocation = location.get(n.i1);
-		checkRedefinition(n.i1.s, curLocation);
+        if(symbolTable.get(n.i1.s) != null)
+		    errorRedefinition(n.i1.s, curLocation.line, curLocation.column);
 		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
 		symbolTable.put(n.i1.s, cls);
 
-		//TODO: Do we include args identifier? There is no method...damnit!
+		// TODO: Do we include args identifier? There is no method...damnit!
 		// THERE ARE NO STRINGS! WHAT TYPE ARE YOU?
 	}
 	/**
@@ -68,7 +65,8 @@ public class SymbolTableBuilder implements Visitor {
 	public void visit(ClassDeclSimple n) {
 		MJToken curLocation = location.get(n.i);
 
-		checkRedefinition(n.i.s, curLocation);
+        if(symbolTable.get(n.i.s) != null)
+            errorRedefinition(n.i.s, curLocation.line, curLocation.column);
 		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
 		symbolTable.put(n.i.s, cls);
         symbolTable.startScope();
@@ -76,6 +74,10 @@ public class SymbolTableBuilder implements Visitor {
         // Add all class variable definitions.
 		for(int i = 0; i < n.vl.size(); i++){
 			VarDecl v = n.vl.elementAt(i);
+            MJToken token = location.get(v.i);
+            if(cls.hasVariable(v.i.s)){
+                errorRedefinition(v.i.s, token.line, token.column);
+            }
 			v.accept(this);
 			VariableAttribute variable = (VariableAttribute) symbols.pop();
 			cls.addVariable(v.i.s, variable);
@@ -84,6 +86,10 @@ public class SymbolTableBuilder implements Visitor {
         // Add all method declarations, and check their scope shit as well.
         for(int i = 0; i < n.ml.size(); i++){
             MethodDecl m = n.ml.elementAt(i);
+            MJToken token = location.get(m.i);
+            if(cls.hasMethod(m.i.s)){
+                errorRedefinition(m.i.s, token.line, token.column);
+            }
             m.accept(this);
             MethodAttribute method = (MethodAttribute) symbols.pop();
             cls.addMethod(m.i.s, method);
@@ -95,7 +101,6 @@ public class SymbolTableBuilder implements Visitor {
 	}
 	public void visit(VarDecl n){
         MJToken curLocation = location.get(n.i);
-        checkRedefinition(n.i.s, curLocation);
         String type = getType(n.t);
         VariableAttribute variable = new VariableAttribute(curLocation.line, curLocation.column, type);
         symbols.push(variable);
@@ -104,7 +109,6 @@ public class SymbolTableBuilder implements Visitor {
 
 	public void visit(MethodDecl n) {
         MJToken curLocation = location.get(n.i);
-        checkRedefinition(n.i.s, curLocation);
         String retType = getType(n.t);
         MethodAttribute method = new MethodAttribute(curLocation.line, curLocation.column, retType);
         symbolTable.put(n.i.s, method);
@@ -114,12 +118,9 @@ public class SymbolTableBuilder implements Visitor {
         for(int i = 0; i < n.fl.size(); i++){
             n.fl.elementAt(i).accept(this);
             VariableAttribute var = (VariableAttribute) symbols.pop();
-            // Gotta check differently for parameters, since they can redefine but
-            // can't fucking have 2 of the same name. TODO: Email misurda to make sure this is correct.
             String varName = n.fl.elementAt(i).i.s;
             if(method.hasParameter(varName)){
-                System.err.println("JESUS FUCK FORMALS BATMAN! ON LINE " + curLocation.line);
-                hasError = true;
+                errorRedefinition(varName, var.getLine(), var.getColumn());
             }
             method.addParameter(varName,  var);
             symbolTable.put(varName, var);
@@ -127,11 +128,14 @@ public class SymbolTableBuilder implements Visitor {
 
         //Adding all le variables in the method.
         for(int i = 0; i < n.vl.size(); i++){
+            String varName = n.vl.elementAt(i).i.s;
+            MJToken token = location.get(n.vl.elementAt(i).i);
+             if(method.hasVariable(varName)){
+                errorRedefinition(varName, token.line, token.column);
+            }
             n.vl.elementAt(i).accept(this);
             VariableAttribute var = (VariableAttribute) symbols.pop();
-            // n.vl.elementAt(i).i.s is the variable identifier name.
-            // No amount of crying will get rid of it.
-            method.addVariable(n.vl.elementAt(i).i.s, var);
+            method.addVariable(varName, var);
         }
         symbolTable.endScope();
         symbols.push(method);

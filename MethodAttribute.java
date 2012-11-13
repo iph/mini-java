@@ -64,6 +64,10 @@ class MethodAttribute extends Attribute {
     public boolean hasParameter(String id){
         return parameterList.containsKey(id);
     }
+
+    public boolean hasVariable(String id){
+        return vars.containsKey(id);
+    }
 }
 
 

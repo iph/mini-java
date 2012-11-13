@@ -14,10 +14,14 @@ class BBS{
     int size;
     int size;
 
+    int BBS;
     // Invoke the Initialization, Sort and Printing
     // Methods
-    public int Start(int sz, int sz){
+    public int BBS(int sz, int sz){
+        int size;
+        int BBS;
 	int aux01 ;
+    int BubbleSort;
     int aux01;
 	aux01 = this.Init(sz);
 	aux01 = this.Print();
