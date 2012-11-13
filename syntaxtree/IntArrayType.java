@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class IntArrayType extends Type {
   public void accept(Visitor v) {
@@ -9,5 +8,9 @@ public class IntArrayType extends Type {
 
   public Type accept(TypeVisitor v) {
     return v.visit(this);
+  }
+
+  public void accept(IRVisitor v) {
+    v.visit(this);
   }
 }

@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class MethodDecl {
   public Type t;
@@ -21,5 +20,9 @@ public class MethodDecl {
 
   public Type accept(TypeVisitor v) {
     return v.visit(this);
+  }
+
+  public void accept(IRVisitor v) {
+    v.visit(this);
   }
 }

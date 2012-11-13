@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class Minus extends Exp {
   public Exp e1,e2;

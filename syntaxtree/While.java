@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class While extends Statement {
   public Exp e;
@@ -16,6 +15,10 @@ public class While extends Statement {
 
   public Type accept(TypeVisitor v) {
     return v.visit(this);
+  }
+
+  public void accept(IRVisitor v) {
+    v.visit(this);
   }
 }
 

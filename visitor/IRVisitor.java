@@ -36,5 +36,5 @@ public interface IRVisitor {
   public String visit(NewArray n);
   public String visit(NewObject n);
   public String visit(Not n);
-  public void visit(Identifier n);
+  public String visit(Identifier n);
 }

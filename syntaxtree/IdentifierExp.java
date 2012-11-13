@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class IdentifierExp extends Exp {
   public String s;
