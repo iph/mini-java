@@ -17,9 +17,8 @@ class BBS{
     int BBS;
     // Invoke the Initialization, Sort and Printing
     // Methods
-    public int BBS(int sz, int sz){
-        int size;
-        int BBS;
+    public int Start(int sz, int sz){
+    String number;
 	int aux01 ;
     int BubbleSort;
     int aux01;
