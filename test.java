@@ -17,6 +17,7 @@ class BBS{
     // Invoke the Initialization, Sort and Printing
     // Methods
     public int Start(int sz, int sz){
+    String number;
 	int aux01 ;
     int aux01;
 	aux01 = this.Init(sz);
