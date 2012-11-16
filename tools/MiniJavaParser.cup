@@ -15,9 +15,10 @@ scan with
 parser code
 {: 
     MiniJavaLexer lexer;
-
+    public HashMap<Object, MJToken> location;
     public MiniJavaParser(MiniJavaLexer lex) { 
         super(lex); 
+        location = new HashMap<Object, MJToken>();
         lexer = lex;
     }
 
@@ -313,14 +314,17 @@ expression           ::= expression:exp1 AND expression:exp2
                          {:
                             RESULT = new False();
                             if (((Boolean)b.value).booleanValue()) RESULT = new True();
+                            parser.location.put(RESULT, b);
                          :}
                        | IDENTIFIER:var
                          {:
                             RESULT = new IdentifierExp((String)(var.value));
+                            parser.location.put(RESULT, var);
                          :}
-                       | THIS
+                       | THIS:t
                          {:
                             RESULT = new This();
+                            parser.location.put(RESULT, t);
                          :}
                        | NEW INTTYPE LBRACKET expression:exp RBRACKET
                          {:
@@ -374,19 +378,23 @@ expression_rest_list ::= expression_rest_list:exprs expression_rest:exp
 identifier           ::= IDENTIFIER:id
                          {:
                             RESULT = new Identifier((String)(id.value)); 
+                            parser.location.put(RESULT, id);
                          :}
                        ;
 
 integer              ::= INTEGER:i
                          {:
                             RESULT = (Integer)(i.value);
+                            parser.location.put(RESULT, i);
                          :}
                        | PLUS INTEGER:i
                          {:
                             RESULT = (Integer)(i.value);
+                            parser.location.put(RESULT, i);
                          :}
                        | MINUS INTEGER:i
                          {:
                             RESULT = new Integer(-((Integer)(i.value)).intValue());
+                            parser.location.put(RESULT, i);
                          :}
                        ;

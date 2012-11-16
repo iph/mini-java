@@ -11,12 +11,15 @@ class BubbleSort{
 class BBS{
 
     int[] number ;
-    int size ;
+    int size;
+    int size;
 
     // Invoke the Initialization, Sort and Printing
     // Methods
-    public int Start(int sz){
+    public int Start(int sz, int sz){
+    String number;
 	int aux01 ;
+    int aux01;
 	aux01 = this.Init(sz);
 	aux01 = this.Print();
 	System.out.println(99999);
@@ -25,6 +28,10 @@ class BBS{
 	return 0 ;
     }
 
+    public int Sort(){
+
+        return 0;
+    }
 
     // Sort array of integers using Bublesort method
     public int Sort(){
@@ -72,7 +79,7 @@ class BBS{
     }
 
     // Initialize array of integers
-    public int Init(int sz, int sz2){
+    public int Init(int sz){
 	size = sz ;
 	number = new int[sz] ;
 
@@ -82,7 +89,7 @@ class BBS{
 	number[3] = 18 ;
 	number[4] = 2  ;
 	number[5] = 11 ;
-	number[6] = 6
+	number[6] = 6  ;
 	number[7] = 9  ;
 	number[8] = 19 ;
 	number[9] = 5 ;

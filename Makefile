@@ -4,7 +4,7 @@ OUTPUT_FILE = pretty.java
 FLEX_FILE = MiniJavaLexer.jflex
 GRAMMAR_FILE = MiniJavaParser.cup
 
-all: build run
+all: build
 
 build: build_tools build_class
 
@@ -14,7 +14,7 @@ build_tools:
 	mv sym.java tools/
 	jflex tools/$(FLEX_FILE)
 build_class:
-	javac -classpath `pwd`/tools/java-cup-11a.jar:`pwd`/ main.java IRBuilder.java
+	javac -classpath `pwd`/tools/java-cup-11a.jar:`pwd`/ main.java SymbolTable.java SymbolTableBuilder.java IRBuilder.java
 run:
 	java -classpath `pwd`/tools/:`pwd`/tools/java-cup-11a.jar:`pwd`/ main $(INPUT_FILE)
 
