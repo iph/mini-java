@@ -23,7 +23,7 @@ public class Quadruple {
 	}
 
 	public static String nextLabel() {
-		return "l" + lastLabelId++;
+		return "L" + lastLabelId++;
 	}
 
 	public InstructionType getType() {
@@ -55,7 +55,7 @@ public class Quadruple {
 		case NEW:
 			return "new " + arg1;
 		case NEW_ARRAY:
-			return "new " + arg1 + "[]";
+			return "new " + arg1 + "[], " + arg2;
 		case LENGTH:
 			return "length " + arg1;
 		}

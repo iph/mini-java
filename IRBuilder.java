@@ -8,12 +8,12 @@ import visitor.IRVisitor;
 //       True/False representation?
 
 public class IRBuilder implements IRVisitor {
-	//private SymbolTable symbolTable;
+	private SymbolTable symbolTable;
 	private ArrayList<Quadruple> irCode;
 	private HashMap<String, Integer> irLabelLocs;
 
-	public IRBuilder() {
-		//symbolTable = symTable;
+	public IRBuilder(SymbolTable symTable) {
+		symbolTable = symTable;
 		irCode = new ArrayList<Quadruple>();
 		irLabelLocs = new HashMap<String, Integer>();
 	}
@@ -53,6 +53,8 @@ public class IRBuilder implements IRVisitor {
 	    }
 	}
 	public void visit(MainClass n) {
+		//symbolTable.startScope();
+
 		int start = irCode.size();
 		// map the name of the method to its first instruction
 		mapLabelLocation(n.i2.s, start);
@@ -61,6 +63,8 @@ public class IRBuilder implements IRVisitor {
 
   		int end = irCode.size() - 1;
   		printMethod(start, end);
+
+  		//symbolTable.endScope();
 	}
 	public void visit(ClassDeclSimple n) {
   		for (int i = 0; i < n.ml.size(); i++) {
@@ -178,6 +182,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("boolean"));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -187,6 +192,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("boolean"));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -196,6 +202,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("int"));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -205,6 +212,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("int"));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -214,6 +222,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("int"));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -223,6 +232,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("int"));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -231,6 +241,7 @@ public class IRBuilder implements IRVisitor {
 		ins.operator = "length";
 		ins.arg1 = n.e.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("int"));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -251,6 +262,8 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.i.accept(this);
 		ins.arg2 = ""+numParams;
 		ins.result = Quadruple.nextTempVar();
+		String resultType = ((MethodAttribute)symbolTable.get(ins.arg1)).getReturnType();
+		symbolTable.put(ins.result, new TempVarAttribute(resultType));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -277,6 +290,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = "int";
 		ins.arg2 = n.e.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("int array"));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -285,6 +299,7 @@ public class IRBuilder implements IRVisitor {
 		ins.operator = "new";
 		ins.arg1 = n.i.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute(ins.arg1));
 		irCode.add(ins);
 		return ins.result;
 	}
@@ -293,6 +308,7 @@ public class IRBuilder implements IRVisitor {
 		ins.operator = "!";
 		ins.arg1 = n.e.accept(this);
 		ins.result = Quadruple.nextTempVar();
+		symbolTable.put(ins.result, new TempVarAttribute("boolean"));
 		irCode.add(ins);
 		return ins.result;
 	}

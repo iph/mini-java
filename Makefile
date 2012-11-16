@@ -1,4 +1,4 @@
-INPUT_FILE = easy-test.java
+INPUT_FILE = test.java
 OUTPUT_FILE = pretty.java
 
 FLEX_FILE = MiniJavaLexer.jflex
