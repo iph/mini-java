@@ -53,7 +53,11 @@ public class IRBuilder implements IRVisitor {
 	    }
 	}
 	public void visit(MainClass n) {
-		//symbolTable.startScope();
+		String className = n.i1.s;
+		ClassAttribute klass = (ClassAttribute)symbolTable.get(className);
+		klass.getInMyScope(symbolTable);
+		MethodAttribute method = (MethodAttribute)symbolTable.get("main");
+		method.getInMyScope(symbolTable);
 
 		int start = irCode.size();
 		// map the name of the method to its first instruction
@@ -63,8 +67,6 @@ public class IRBuilder implements IRVisitor {
 
   		int end = irCode.size() - 1;
   		printMethod(start, end);
-
-  		//symbolTable.endScope();
 	}
 	public void visit(ClassDeclSimple n) {
   		for (int i = 0; i < n.ml.size(); i++) {
