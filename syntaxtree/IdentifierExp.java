@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class IdentifierExp extends Exp {
   public String s;
@@ -13,6 +12,10 @@ public class IdentifierExp extends Exp {
   }
 
   public Type accept(TypeVisitor v) {
+    return v.visit(this);
+  }
+
+  public String accept(IRVisitor v) {
     return v.visit(this);
   }
 }

@@ -16,8 +16,11 @@ public class main {
 		try {
 			MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileInputStream(args[0])));
             Symbol parseTree = parser.parse();
+<<<<<<< HEAD
             new SymbolTableBuilder(parser.location).visit((Program)parseTree.value);
+=======
             new IRBuilder().visit((Program)parseTree.value);
+>>>>>>> 89e0335bd31cbcf42181f3d6cdb81f48b8ef8e82
 
 		} catch (IOException e) {
 			System.err.println("ERROR: Unable to open file: " + args[0]);

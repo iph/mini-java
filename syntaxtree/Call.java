@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class Call extends Exp {
   public Exp e;
@@ -16,6 +15,10 @@ public class Call extends Exp {
   }
 
   public Type accept(TypeVisitor v) {
+    return v.visit(this);
+  }
+
+  public String accept(IRVisitor v) {
     return v.visit(this);
   }
 }

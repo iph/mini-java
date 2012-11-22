@@ -14,7 +14,11 @@ build_tools:
 	mv sym.java tools/
 	jflex tools/$(FLEX_FILE)
 build_class:
-	javac -classpath `pwd`/tools/java-cup-11a.jar:`pwd`/ main.java SymbolTable.java SymbolTableBuilder.java IRBuilder.java
+<<<<<<< HEAD
+	javac -classpath `pwd`/tools/java-cup-11a.jar:`pwd`/ main.java SymbolTable.java SymbolTableBuilder.java
+=======
+	javac -classpath `pwd`/tools/java-cup-11a.jar:`pwd`/ main.java IRBuilder.java
+>>>>>>> 89e0335bd31cbcf42181f3d6cdb81f48b8ef8e82
 run:
 	java -classpath `pwd`/tools/:`pwd`/tools/java-cup-11a.jar:`pwd`/ main $(INPUT_FILE)
 

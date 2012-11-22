@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class ClassDeclSimple extends ClassDecl {
   public Identifier i;
@@ -17,5 +16,9 @@ public class ClassDeclSimple extends ClassDecl {
 
   public Type accept(TypeVisitor v) {
     return v.visit(this);
+  }
+
+  public void accept(IRVisitor v) {
+    v.visit(this);
   }
 }

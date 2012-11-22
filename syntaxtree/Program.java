@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class Program {
   public MainClass m;
@@ -16,5 +15,9 @@ public class Program {
 
   public Type accept(TypeVisitor v) {
     return v.visit(this);
+  }
+
+  public void accept(IRVisitor v) {
+    v.visit(this);
   }
 }

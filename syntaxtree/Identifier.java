@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class Identifier {
   public String s;
@@ -17,6 +16,10 @@ public class Identifier {
     return v.visit(this);
   }
 
+  public String accept(IRVisitor v) {
+    return v.visit(this);
+  }
+  
   public String toString(){
     return s;
   }

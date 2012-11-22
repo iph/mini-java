@@ -1,6 +1,5 @@
 package syntaxtree;
-import visitor.Visitor;
-import visitor.TypeVisitor;
+import visitor.*;
 
 public class ArrayAssign extends Statement {
   public Identifier i;
@@ -18,5 +17,8 @@ public class ArrayAssign extends Statement {
     return v.visit(this);
   }
 
+  public void accept(IRVisitor v) {
+    v.visit(this);
+  }
 }
 
