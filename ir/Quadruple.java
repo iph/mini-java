@@ -45,7 +45,10 @@ public class Quadruple {
 		case PARAM:
 			return "param " + arg1;
 		case CALL:
-			return "call " + arg1 + ", " + arg2;
+			if (result.equals("")) {
+				return "call " + arg1 + ", " + arg2;
+			}
+			return result + " := call " + arg1 + ", " + arg2; 
 		case RETURN:
 			return "return " + arg1;
 		case ARRAY_ASSIGN:
@@ -53,11 +56,11 @@ public class Quadruple {
 		case INDEXED_ASSIGN:
 			return result + " := " + arg1 + "[" + arg2 + "]";
 		case NEW:
-			return "new " + arg1;
+			return result + " := new " + arg1;
 		case NEW_ARRAY:
-			return "new " + arg1 + "[], " + arg2;
+			return result + " := new " + arg1 + "[], " + arg2;
 		case LENGTH:
-			return "length " + arg1;
+			return result + " := length " + arg1;
 		}
 		return "";
 	}

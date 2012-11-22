@@ -8,8 +8,8 @@ class MethodAttribute extends Attribute {
 	private Map<String, VariableAttribute> parameterList;
     private HashMap<String, VariableAttribute> vars;
 
-	public MethodAttribute(int line, int col, String retType) {
-		super(line, col);
+	public MethodAttribute(String identifier, int line, int col, String retType) {
+		super(identifier, line, col);
 		returnType = retType;
 		parameterList = new LinkedHashMap<String, VariableAttribute>();
         vars = new HashMap<String, VariableAttribute>();

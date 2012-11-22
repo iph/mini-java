@@ -14,6 +14,12 @@ public class SymbolTableBuilder implements Visitor {
 		symbols = new Stack<Object>();
 		location = l;
         hasError = false;
+        addPrintlnMethod();
+	}
+
+	public void addPrintlnMethod() {
+		MethodAttribute method = new MethodAttribute("System.out.println", -1, -1, "");
+		symbolTable.put("System.out.println", method);
 	}
 
 	public SymbolTable getSymbolTable() {
@@ -56,11 +62,22 @@ public class SymbolTableBuilder implements Visitor {
 	public void visit(MainClass n){
 		MJToken curLocation = location.get(n.i1);
 		checkRedefinition(n.i1.s, curLocation);
-		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
+		ClassAttribute cls = new ClassAttribute(n.i1.s, curLocation.line, curLocation.column);
 		symbolTable.put(n.i1.s, cls);
+		symbolTable.startScope();
 
 		//TODO: Do we include args identifier? There is no method...damnit!
 		// THERE ARE NO STRINGS! WHAT TYPE ARE YOU?
+		// Edit (Joel): I don't think we should add the formal to the method attribute, since
+		//              we'll never have the need to check it. But I do need a method attribute for my IR builder
+		MethodAttribute method = new MethodAttribute("main", curLocation.line+1, curLocation.column+20, "");
+		symbolTable.put("main", method);
+		symbolTable.startScope();
+		symbolTable.endScope();
+		symbols.push(method);
+
+		cls.addMethod("main", method);
+		symbolTable.endScope();
 	}
 	/**
 	* The basics for class
@@ -69,7 +86,7 @@ public class SymbolTableBuilder implements Visitor {
 		MJToken curLocation = location.get(n.i);
 
 		checkRedefinition(n.i.s, curLocation);
-		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
+		ClassAttribute cls = new ClassAttribute(n.i.s, curLocation.line, curLocation.column);
 		symbolTable.put(n.i.s, cls);
         symbolTable.startScope();
 
@@ -97,7 +114,7 @@ public class SymbolTableBuilder implements Visitor {
         MJToken curLocation = location.get(n.i);
         checkRedefinition(n.i.s, curLocation);
         String type = getType(n.t);
-        VariableAttribute variable = new VariableAttribute(curLocation.line, curLocation.column, type);
+        VariableAttribute variable = new VariableAttribute(n.i.s, curLocation.line, curLocation.column, type);
         symbols.push(variable);
         symbolTable.put(n.i.s, variable);
 	}
@@ -106,7 +123,7 @@ public class SymbolTableBuilder implements Visitor {
         MJToken curLocation = location.get(n.i);
         checkRedefinition(n.i.s, curLocation);
         String retType = getType(n.t);
-        MethodAttribute method = new MethodAttribute(curLocation.line, curLocation.column, retType);
+        MethodAttribute method = new MethodAttribute(n.i.s, curLocation.line, curLocation.column, retType);
         symbolTable.put(n.i.s, method);
         symbolTable.startScope();
 
@@ -138,7 +155,7 @@ public class SymbolTableBuilder implements Visitor {
 	}
 	public void visit(Formal n){
         MJToken token = location.get(n.i);
-        VariableAttribute variable = new VariableAttribute(token.line, token.column, getType(n.t));
+        VariableAttribute variable = new VariableAttribute(n.i.s, token.line, token.column, getType(n.t));
         symbols.push(variable);
 	}
 

@@ -1,10 +1,16 @@
 
 public abstract class Attribute{
+	private String identifier;
 	private int line, column;
 
-	public Attribute(int l, int c) {
+	public Attribute(String ident, int l, int c) {
+		identifier = ident;
 		line = l;
 		column = c;
+	}
+
+	public String getIdentifier() {
+		return identifier;
 	}
 
 	public int getLine() {

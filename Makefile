@@ -1,4 +1,4 @@
-INPUT_FILE = test.java
+INPUT_FILE = BubbleSort.java
 OUTPUT_FILE = pretty.java
 
 FLEX_FILE = MiniJavaLexer.jflex
