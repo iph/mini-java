@@ -59,7 +59,7 @@ public class SymbolTableBuilder implements Visitor {
 		MJToken curLocation = location.get(n.i1);
         if(symbolTable.get(n.i1.s) != null)
 		    errorRedefinition(n.i1.s, curLocation.line, curLocation.column);
-		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
+		ClassAttribute cls = new ClassAttribute(n.i1.s, curLocation.line, curLocation.column);
 		symbolTable.put(n.i1.s, cls);
 		symbolTable.startScope();
 
@@ -82,14 +82,9 @@ public class SymbolTableBuilder implements Visitor {
 	public void visit(ClassDeclSimple n) {
 		MJToken curLocation = location.get(n.i);
 
-<<<<<<< HEAD
         if(symbolTable.get(n.i.s) != null)
             errorRedefinition(n.i.s, curLocation.line, curLocation.column);
-		ClassAttribute cls = new ClassAttribute(curLocation.line, curLocation.column);
-=======
-		checkRedefinition(n.i.s, curLocation);
 		ClassAttribute cls = new ClassAttribute(n.i.s, curLocation.line, curLocation.column);
->>>>>>> a4f5a391c8b3274542ef677cc17c6470de7f9da5
 		symbolTable.put(n.i.s, cls);
         symbolTable.startScope();
 
