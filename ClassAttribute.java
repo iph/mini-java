@@ -4,8 +4,8 @@ class ClassAttribute extends Attribute {
 	private HashMap<String, VariableAttribute> variables;
 	private HashMap<String, MethodAttribute> methods;
 
-	public ClassAttribute(int line, int col) {
-		super(line, col);
+	public ClassAttribute(String identifier, int line, int col) {
+		super(identifier, line, col);
         methods = new HashMap<String, MethodAttribute>();
 		variables = new HashMap<String, VariableAttribute>();
 	}

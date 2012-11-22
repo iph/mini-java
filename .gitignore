@@ -4,3 +4,6 @@
 # Package Files #
 *.war
 *.ear
+tools/sym.java
+tools/MiniJavaLexer.java
+tools/MiniJavaParser.java

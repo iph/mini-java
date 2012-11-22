@@ -3,46 +3,30 @@ import syntaxtree.*;
 import ir.*;
 import visitor.IRVisitor;
 
-// TODO: backpatching instead of what is done currently
-//       short-circuiting?
-//       True/False representation?
-
 public class IRBuilder implements IRVisitor {
-	//private SymbolTable symbolTable;
-	private ArrayList<Quadruple> irCode;
-	private HashMap<String, Integer> irLabelLocs;
+	private SymbolTable symbolTable;
+	private HashMap<String, ClassAttribute> classes;
+	private HashMap<String, MethodIR> ir;
+	private MethodIR curMethodIR;
+	// FIXME: shouldn't need to keep track of this
+	private String curClass;
 
-	public IRBuilder() {
-		//symbolTable = symTable;
-		irCode = new ArrayList<Quadruple>();
-		irLabelLocs = new HashMap<String, Integer>();
+	public IRBuilder(SymbolTable symTable) {
+		symbolTable = symTable;
+		classes = new HashMap<String, ClassAttribute>();
+		storeClasses();
+		ir = new HashMap<String, MethodIR>();
+		curMethodIR = null;
+		curClass = "";
 	}
 
-	public void resolveLabels() {
-		for (Quadruple instruction : irCode) {
-			switch (instruction.getType()) {
-			case JUMP:
-			case COND_JUMP:
-			case CALL:
-				Integer loc = irLabelLocs.get(instruction.arg1);
-				if (loc != null)
-					instruction.arg1 = ""+loc.intValue();
-				break;
+	public void storeClasses() {
+		HashMap<String, LinkedList<Object>> environment = symbolTable.getEnvironment();
+		for (Map.Entry<String, LinkedList<Object>> entry : environment.entrySet()) {
+			Attribute attr = (Attribute)(entry.getValue().get(0));
+			if (attr instanceof ClassAttribute) {
+				classes.put(entry.getKey(), (ClassAttribute)attr);
 			}
-		}
-	}
-
-	private void mapLabelLocation(String label, int location) {
-		irLabelLocs.put(label, new Integer(location));
-	}
-
-	private void printMethod(int start, int end) {
-		if (end < start)
-			return;
-
-		System.out.println();
-		for (int i = start; i <= end; i++) {
-			System.out.println(i + ": " + irCode.get(i).toString());
 		}
 	}
 
@@ -52,31 +36,66 @@ public class IRBuilder implements IRVisitor {
 	        n.cl.elementAt(i).accept(this);
 	    }
 	}
+
 	public void visit(MainClass n) {
-		int start = irCode.size();
-		// map the name of the method to its first instruction
-		mapLabelLocation(n.i2.s, start);
+		String className = n.i1.s;
+		symbolTable.startScope();
+        ClassAttribute cls = (ClassAttribute)symbolTable.get(className);
+        cls.getInMyScope(symbolTable);
+        symbolTable.startScope();
+		MethodAttribute method = (MethodAttribute)symbolTable.get("main");
+		method.getInMyScope(symbolTable);
+
+		// use fully-qualified method name for IR
+		MethodIR methodIR = new MethodIR(className + ".main");
+		curMethodIR = methodIR;
 		// convert statement to IR
     	n.s.accept(this);
 
-  		int end = irCode.size() - 1;
-  		printMethod(start, end);
+    	System.out.println(curMethodIR);
+
+    	symbolTable.endScope();
+    	symbolTable.endScope();
 	}
+
 	public void visit(ClassDeclSimple n) {
+        symbolTable.startScope();
+        ClassAttribute cls = (ClassAttribute)symbolTable.get(n.i.s);
+        cls.getInMyScope(symbolTable);
+
+        curClass = cls.getIdentifier();
+
   		for (int i = 0; i < n.ml.size(); i++) {
   			n.ml.elementAt(i).accept(this);
   		}
+
+  		symbolTable.endScope();
 	}
+
 	public void visit(ClassDeclExtends n) {
+        symbolTable.startScope();
+        ClassAttribute cls = (ClassAttribute)symbolTable.get(n.i.s);
+        cls.getInMyScope(symbolTable);
+
+        curClass = cls.getIdentifier();
+
   		for (int i = 0; i < n.ml.size(); i++) {
   			n.ml.elementAt(i).accept(this);
   		}
+
+  		symbolTable.endScope();
 	}
+
 	public void visit(VarDecl n) {}
+
 	public void visit(MethodDecl n) {
-		int start = irCode.size();
-		// map the name of the method to its first instruction
-		mapLabelLocation(n.i.s, start);
+        symbolTable.startScope();
+        MethodAttribute method = (MethodAttribute)symbolTable.get(n.i.s);
+        method.getInMyScope(symbolTable);
+
+        // use fully-qualified method name for IR
+		MethodIR methodIR = new MethodIR(curClass + "." + n.i.s);
+		curMethodIR = methodIR;
 		// convert each statement into IR
   		for (int i = 0; i < n.sl.size(); i++) {
   			n.sl.elementAt(i).accept(this);
@@ -85,219 +104,303 @@ public class IRBuilder implements IRVisitor {
 		Quadruple ins = new Quadruple(InstructionType.RETURN);
 		ins.operator = "return";
 		ins.arg1 = n.e.accept(this);
-		irCode.add(ins);
+		curMethodIR.addQuad(ins);
 
-  		int end = irCode.size() - 1;
-  		printMethod(start, end);
+		// resolve all our labels to quads now
+		curMethodIR.backpatch();
+
+		System.out.println(curMethodIR);
+
+  		symbolTable.endScope();
 	}
+
 	public void visit(Formal n) {}
 	public void visit(IntArrayType n) {}
 	public void visit(BooleanType n) {}
 	public void visit(IntegerType n) {}
 	public void visit(IdentifierType n) {}
+
 	public void visit(Block n) {
   		for (int i = 0; i < n.sl.size(); i++) {
   			n.sl.elementAt(i).accept(this);
   		}
 	}
+
 	public void visit(If n) {
+		// generate code for calculating expression
+		String expression = n.e.accept(this);
+
 		Quadruple ins = new Quadruple(InstructionType.COND_JUMP);
 		ins.operator = "iftrue";
-		ins.arg2 = n.e.accept(this);
-		irCode.add(ins);
-		int blankTrue = irCode.size() - 1;
+		String l1 = Quadruple.nextLabel();
+		ins.arg1 = l1;
+		ins.arg2 = expression;
+		curMethodIR.addQuad(ins);
+
 		// generate else code
 		n.s2.accept(this);
+
+		// jump from end of else to endif
 		ins = new Quadruple(InstructionType.JUMP);
 		ins.operator = "goto";
-		irCode.add(ins);
-		int blankFalse = irCode.size() - 1;
-		int l1 = blankFalse + 1;
+		String l2 = Quadruple.nextLabel();
+		ins.arg1 = l2;
+		curMethodIR.addQuad(ins);
+
+		// l1 should resolve to the quad right after this goto
+		curMethodIR.addFutureLabel(l1, curMethodIR.size());
+
 		// generate if code
 		n.s1.accept(this);
-		int l2 = irCode.size();
-		irCode.get(blankTrue).arg1 = ""+l1;
-		irCode.get(blankFalse).arg1 = ""+l2;
+
+		// l2 should resolve to the quad right after this
+		curMethodIR.addFutureLabel(l2, curMethodIR.size());
 	}
+
 	public void visit(While n) {
-		// L1 is the beginning of our loop
-		int l1 = irCode.size();
+		String l1 = Quadruple.nextLabel();
+		// l1 should resolve to the first quad of the expression
+		curMethodIR.addFutureLabel(l1, curMethodIR.size());
+		String expression = n.e.accept(this);
+
 		Quadruple ins = new Quadruple(InstructionType.COND_JUMP);
 		ins.operator = "iftrue";
-		ins.arg2 = n.e.accept(this);
-		// L2 comes after the expression code + the iftrue + the goto
-		int l2 = irCode.size() + 2;
-		ins.arg1 = ""+l2;
-		irCode.add(ins);
+		String l2 = Quadruple.nextLabel();
+		ins.arg1 = l2;
+		ins.arg2 = expression;
+		curMethodIR.addQuad(ins);
+
+		// jump to end of while
 		ins = new Quadruple(InstructionType.JUMP);
 		ins.operator = "goto";
-		// leave arg1 blank for now since we don't know where L3 is yet
-		irCode.add(ins);
-		int blankCode = l2-1;
+		String l3 = Quadruple.nextLabel();
+		ins.arg1 = l3;
+		curMethodIR.addQuad(ins);
+
+		// l2 should resolve to (goto L3) + 1
+		curMethodIR.addFutureLabel(l2, curMethodIR.size());
+
 		// generate statement code
 		n.s.accept(this);
+
+		// jump to beginning of while
 		ins = new Quadruple(InstructionType.JUMP);
 		ins.operator = "goto";
-		ins.arg1 = ""+l1;
-		irCode.add(ins);
-		// now we know where L3 is, so update the second goto
-		int l3 = irCode.size();
-		irCode.get(blankCode).arg1 = ""+l3;
+		ins.arg1 = l1;
+		curMethodIR.addQuad(ins);
+
+		// l3 should resolve to the quad right after this
+		curMethodIR.addFutureLabel(l3, curMethodIR.size());
 	}
+
 	public void visit(Print n) {
 		Quadruple ins = new Quadruple(InstructionType.PARAM);
 		ins.operator = "param";
 		ins.arg1 = n.e.accept(this);
-		irCode.add(ins);
+		curMethodIR.addQuad(ins);
 		ins = new Quadruple(InstructionType.CALL);
 		ins.operator = "call";
 		ins.arg1 = "System.out.println";
 		// System.out.println takes 1 param (an int)
 		ins.arg2 = ""+1;
 		// TODO: should we pretend like it has a result, and ignore it?
-		irCode.add(ins);
+		curMethodIR.addQuad(ins);
 	}
+
 	public void visit(Assign n) {
 		Quadruple ins = new Quadruple(InstructionType.COPY);
 		ins.operator = ":=";
 		ins.result = n.i.accept(this);
 		ins.arg1 = n.e.accept(this);
-		irCode.add(ins);
+		curMethodIR.addQuad(ins);
 	}
+
 	public void visit(ArrayAssign n) {
 		Quadruple ins = new Quadruple(InstructionType.ARRAY_ASSIGN);
 		ins.operator = "[]";
 		ins.result = n.i.accept(this);
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
-		irCode.add(ins);
+		curMethodIR.addQuad(ins);
 	}
+
 	public String visit(And n) {
 		Quadruple ins = new Quadruple(InstructionType.BINARY_ASSIGN);
 		ins.operator = "&&";
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "boolean"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(LessThan n) {
 		Quadruple ins = new Quadruple(InstructionType.BINARY_ASSIGN);
 		ins.operator = "<";
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "boolean"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(Plus n) {
 		Quadruple ins = new Quadruple(InstructionType.BINARY_ASSIGN);
 		ins.operator = "+";
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(Minus n) {
 		Quadruple ins = new Quadruple(InstructionType.BINARY_ASSIGN);
 		ins.operator = "-";
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(Times n) {
 		Quadruple ins = new Quadruple(InstructionType.BINARY_ASSIGN);
 		ins.operator = "*";
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(ArrayLookup n) {
 		Quadruple ins = new Quadruple(InstructionType.INDEXED_ASSIGN);
 		ins.operator = "[]";
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(ArrayLength n) {
 		Quadruple ins = new Quadruple(InstructionType.LENGTH);
 		ins.operator = "length";
 		ins.arg1 = n.e.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(Call n) {
   		Quadruple ins = new Quadruple(InstructionType.PARAM);
   		ins.operator = "param";
   		ins.arg1 = n.e.accept(this);
-  		irCode.add(ins);
+  		curMethodIR.addQuad(ins);
+
+  		String exprType = getVarType(ins.arg1);
+
   		for (int i = 0; i < n.el.size(); i++) {
   			ins = new Quadruple(InstructionType.PARAM);
   			ins.operator = "param";
   			ins.arg1 = n.el.elementAt(i).accept(this);
-  			irCode.add(ins);
+  			curMethodIR.addQuad(ins);
   		}
   		int numParams = n.el.size() + 1;
 		ins = new Quadruple(InstructionType.CALL);
 		ins.operator = "call";
-		ins.arg1 = n.i.accept(this);
+		// give arg1 the canonical method name
+		ins.arg1 = exprType + "." + n.i.accept(this);
 		ins.arg2 = ""+numParams;
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+
+		String resultType = getReturnType(ins.arg1);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, resultType));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
+	public String getReturnType(String canonicalMethod) {
+		String className = canonicalMethod.split("\\.")[0];
+		String methodName = canonicalMethod.split("\\.")[1];
+		MethodAttribute method = classes.get(className).getMethod(methodName);
+		return method.getReturnType();
+	}
+
+	public String getVarType(String identifier) {
+		if (identifier.equals("this"))
+			return curClass;
+
+		Attribute var = (Attribute)symbolTable.get(identifier);
+		if (var instanceof VariableAttribute) {
+			return ((VariableAttribute)var).getType();
+		} else if (var instanceof TempVarAttribute) {
+			return ((TempVarAttribute)var).getType();
+		}
+		return "";
+	}
+
 	public String visit(IntegerLiteral n) {
 		return ""+n.i;
 	}
+
 	public String visit(True n) {
 		//return ""+(-1);
-		return "True";
+		return "true";
 	}
+
 	public String visit(False n) {
 		//return ""+0;
-		return "False";
+		return "false";
 	}
+
 	public String visit(IdentifierExp n) {
 		return n.s;
 	}
+
 	public String visit(This n) {
 		return "this";
 	}
+
 	public String visit(NewArray n) {
 		Quadruple ins = new Quadruple(InstructionType.NEW_ARRAY);
 		ins.operator = "new";
 		ins.arg1 = "int";
 		ins.arg2 = n.e.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int array"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(NewObject n) {
 		Quadruple ins = new Quadruple(InstructionType.NEW);
 		ins.operator = "new";
 		ins.arg1 = n.i.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, ins.arg1));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
+
 	public String visit(Not n) {
 		Quadruple ins = new Quadruple(InstructionType.UNARY_ASSIGN);
 		ins.operator = "!";
 		ins.arg1 = n.e.accept(this);
 		ins.result = Quadruple.nextTempVar();
-		irCode.add(ins);
+		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "boolean"));
+		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
-	// TODO: for Identifier, it should be a pointer to
-	//       symbol table entry
+
 	public String visit(Identifier n) {
 		return n.s;
 	}
