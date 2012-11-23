@@ -3,7 +3,7 @@ import visitor.*;
 import java.util.*;
 import tools.MJToken;
 
-public class SemanticChecker implements Visitor{
+public class SemanticChecker implements SemanticVisitor {
     private SymbolTable environment;
     private HashMap<Object, MJToken> location; //Still need this!
     //A dumb way to figure out when a statement is in main.
@@ -88,49 +88,63 @@ public class SemanticChecker implements Visitor{
     // TODO: Implementation work shouldn't be too bad. All the scope is currently
     //       defined, so use the environment.get(String) to get any attributes.
     //       To check an attribute, just use instance of.
-    public void visit(Call n){
+    public String visit(Call n){
         //TODO: Check to see if the identifier is a method.
         //TODO: Check to see if num arguments match.
         //TODO: Check to see if the type of an argument doesn't match.
     }
-    public void visit(And n){
+    public String visit(And n) {
         //TODO: Check boolean in expressions.
     }
-    public void visit(ArrayLookup n){}
-    public void visit(IntegerLiteral n){}
-    public void visit(True n){}
-    public void visit(False n){}
-    public void visit(IdentifierExp n){
+    public String visit(ArrayLookup n) {
+        return "int";
+    }
+    public String visit(IntegerLiteral n) {
+        return "int";
+    }
+    public String visit(True n) {
+        return "boolean";
+    }
+    public String visit(False n) {
+        return "boolean";
+    }
+    public String visit(IdentifierExp n) {
         //TODO: Check if the identifier is a method/class.
         if(!(environment.get(n.s) instanceof VariableAttribute)){
-            System.out.print("Invalid r-value: %s is a %s, at line %d, character %d\n");
+            System.out.printf("Invalid r-value: %s is a %s, at line %d, character %d\n");
         }
     }
-    public void visit(This n){
+    public String visit(This n) {
         if(inMain){
-            System.out.print("illegal use of keyword ‘this’ in static method at line %d, character %d");
+            MJToken token = location.get(n);
+            System.out.printf("Illegal use of keyword ‘this’ in static method at line %d, character %d\n",
+                             token.line, token.column);
             hasError = true;
         }
     }
-    public void visit(NewArray n){}
-    public void visit(NewObject n){}
-    public void visit(Not n){
+    public String visit(NewArray n){}
+    public String visit(NewObject n){}
+    public String visit(Not n){
         //TODO: Check boolean in expressions.
     }
-    public void visit(ArrayLength n){
+    public String visit(ArrayLength n) {
         //TODO: Make sure int[] is used.
     }
-    public void visit(LessThan n){
+    public String visit(LessThan n) {
         //TODO: Check integer for expressions
     }
-    public void visit(Plus n){
+    public String visit(Plus n) {
         //TODO: Check integer for expressions.
     }
-    public void visit(Minus n){
+    public String visit(Minus n) {
         //TODO: Check integer for expresions.
     }
-    public void visit(Times n){
+    public String visit(Times n) {
         //TODO: Check integer for expressions.
+    }
+
+    public String visit(Identifier n) {
+
     }
 
     //Statement work.
@@ -138,6 +152,7 @@ public class SemanticChecker implements Visitor{
     //      implementing the checks on expression and individual statements.
     public void visit(Block n){}
     public void visit(If n){
+        n.e.accept(this);
         //TODO: Make sure boolean evaluation.
     }
     public void visit(While n){
@@ -153,23 +168,22 @@ public class SemanticChecker implements Visitor{
         }
         //Check for left value assignment of this or class/method name.
         if(n.i.s.equalsIgnoreCase("this") || !(environment.get(n.i.s) instanceof VariableAttribute)){
-           System.out.print("invalid l-value, %s is a %s, at line %d, character %d\n");
+           System.out.print("Invalid l-value, %s is a %s, at line %d, character %d\n");
            hasError = true;
            return;
         }
+
         //TODO: Make sure right hand type == left hand type.
     }
     public void visit(ArrayAssign n){
         //TODO: Check for left value assignment of this or class/method name.
     }
 
-
     //Uhh...No work? Maybe we can do types...
-    public void visit(VarDecl n){}
-    public void visit(IntArrayType n){}
-    public void visit(BooleanType n){}
-    public void visit(IntegerType n){}
-    public void visit(IdentifierType n){}
-    public void visit(Identifier n){}
-    public void visit(Formal n){}
-    }
+    public String visit(VarDecl n){}
+    public String visit(IntArrayType n){}
+    public String visit(BooleanType n){}
+    public String visit(IntegerType n){}
+    public String visit(IdentifierType n){}
+    public String visit(Formal n){}
+}
