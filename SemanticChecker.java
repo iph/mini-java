@@ -14,7 +14,6 @@ public class SemanticChecker implements SemanticVisitor {
         environment = s;
     }
 
-
     public void visit(Program n){
         n.m.accept(this);
         for(int i = 0; i < n.cl.size(); i++){
@@ -110,9 +109,12 @@ public class SemanticChecker implements SemanticVisitor {
     }
     public String visit(IdentifierExp n) {
         //TODO: Check if the identifier is a method/class.
-        if(!(environment.get(n.s) instanceof VariableAttribute)){
+        Attribute attr = (Attribute)environment.get(n.s);
+        if(!(attr instanceof VariableAttribute)){
             System.out.printf("Invalid r-value: %s is a %s, at line %d, character %d\n");
+            hasError = true;
         }
+        return ((VariableAttribute)attr).getType();
     }
     public String visit(This n) {
         if(inMain){
@@ -122,12 +124,20 @@ public class SemanticChecker implements SemanticVisitor {
             hasError = true;
         }
     }
-    public String visit(NewArray n){}
+    public String visit(NewArray n){
+        return "int array"
+    }
     public String visit(NewObject n){}
     public String visit(Not n){
         //TODO: Check boolean in expressions.
     }
     public String visit(ArrayLength n) {
+        if (!n.e.accept(this).equals("int array")) {
+            MJToken token = location.get(n);
+            System.out.printf("Length property only applies to arrays, line %d, character %d\n",
+                             token.line, token.column);
+            hasError = true;
+        }
         //TODO: Make sure int[] is used.
     }
     public String visit(LessThan n) {
@@ -152,10 +162,23 @@ public class SemanticChecker implements SemanticVisitor {
     //      implementing the checks on expression and individual statements.
     public void visit(Block n){}
     public void visit(If n){
-        n.e.accept(this);
+        if (!n.e.accept(this).equals("boolean")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-boolean expression used as the condition of if statement at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return;
+        }
         //TODO: Make sure boolean evaluation.
     }
     public void visit(While n){
+        if (!n.e.accept(this).equals("boolean")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-boolean expression used as the condition of while statement at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return;
+        }
         //TODO: Make sure boolean evaluation.
     }
     public void visit(Print n){}
