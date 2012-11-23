@@ -89,7 +89,16 @@ public class SemanticChecker implements SemanticVisitor {
     //       To check an attribute, just use instance of.
     public String visit(Call n){
         //TODO: Check to see if the identifier is a method.
+        if(!environment.hasId(n.i.s) || !(environment.get(n.i.s) instanceof MethodAttribute)){
+            System.out.print("Attempt to call a non-method at line %d, character %d");
+            return;
+        }
+        MethodAttribute meth = (MethodAttribute)environment.get(n.i.s);
         //TODO: Check to see if num arguments match.
+        if(meth.parameterListSize() != n.el.size()){
+           System.out.print("Call of method %s does not match its declared number of arguments at line %d, character %d");
+           return;
+        }
         //TODO: Check to see if the type of an argument doesn't match.
     }
     public String visit(And n) {
@@ -199,7 +208,20 @@ public class SemanticChecker implements SemanticVisitor {
         //TODO: Make sure right hand type == left hand type.
     }
     public void visit(ArrayAssign n){
-        //TODO: Check for left value assignment of this or class/method name.
+        //String expressionInt = n.e1.accept(this);
+        //String expressionInt2 = n.e2.accept(this);
+
+        if(!environment.hasId(n.i.s)){
+            System.out.printf("WHAT YOU DOING STUPID?\n");
+            hasError = true;
+            return;
+        }
+        //Check for left value assignment of this or class/method name.
+        if(n.i.s.equalsIgnoreCase("this") || !(environment.get(n.i.s) instanceof VariableAttribute)){
+           System.out.print("invalid l-value, %s is a %s, at line %d, character %d\n");
+           hasError = true;
+           return;
+        }
     }
 
     //Uhh...No work? Maybe we can do types...

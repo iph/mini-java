@@ -6,12 +6,6 @@ Invalid r-value: %s is a %s, at line %d, character %d
 If an operator is applied to a class or method name, output the message:
 Invalid operands for %s operator, at line %d, character %d
 
-If an attempt to call something that isn’t a method (class, variable, etc.) is made, output:
-Attempt to call a non-method at line %d, character %d
-
-If a method is called with the wrong number of arguments:
-Call of method %s does not match its declared number of arguments at line %d, character %d
-
 If a method is called with the wrong type of argument:
 Call of method %s does not match its declared signature at line %d, character %d
 
