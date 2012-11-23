@@ -20,6 +20,11 @@ public class SymbolTableBuilder implements Visitor {
 	public void addPrintlnMethod() {
 		MethodAttribute method = new MethodAttribute("System.out.println", -1, -1, "");
 		symbolTable.put("System.out.println", method);
+		symbolTable.startScope();
+		VariableAttribute var = new VariableAttribute("out", -1, -1, "int");
+		method.addParameter("out", var);
+        symbolTable.put("out", var);
+        symbolTable.endScope();
 	}
 
 	public SymbolTable getSymbolTable() {
