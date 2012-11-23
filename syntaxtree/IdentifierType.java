@@ -19,4 +19,8 @@ public class IdentifierType extends Type {
   public void accept(IRVisitor v) {
     v.visit(this);
   }
+
+  public String accept(SemanticVisitor v) {
+    return v.visit(this);
+  }
 }

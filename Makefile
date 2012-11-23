@@ -1,4 +1,4 @@
-INPUT_FILE = BubbleSort.java
+INPUT_FILE = tests/easy-test.java
 OUTPUT_FILE = pretty.java
 
 FLEX_FILE = MiniJavaLexer.jflex
@@ -14,7 +14,7 @@ build_tools:
 	mv sym.java tools/
 	jflex tools/$(FLEX_FILE)
 build_class:
-	javac -classpath `pwd`/tools/java-cup-11a.jar:`pwd`/ main.java SymbolTable.java SymbolTableBuilder.java IRBuilder.java
+	javac -classpath `pwd`/tools/java-cup-11a.jar:`pwd`/ main.java
 run:
 	java -classpath `pwd`/tools/:`pwd`/tools/java-cup-11a.jar:`pwd`/ main $(INPUT_FILE)
 

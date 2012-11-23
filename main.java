@@ -14,12 +14,18 @@ public class main {
 			System.exit(1);
 		}
 		try {
+			// Syntax check input file
 			MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileInputStream(args[0])));
-            Symbol parseTree = parser.parse();
-
-            SymbolTableBuilder symTableBuilder = new SymbolTableBuilder(parser.location);
-            symTableBuilder.visit((Program)parseTree.value);
-            new IRBuilder(symTableBuilder.getSymbolTable()).visit((Program)parseTree.value);
+            // Store the root AST node from the parse
+            Program program = (Program)parser.parse().value;
+            // Build a symbol table from our AST
+            SymbolTableBuilder symbolTableBuilder = new SymbolTableBuilder(parser.location);
+            symbolTableBuilder.visit(program);
+            SymbolTable symbolTable = symbolTableBuilder.getSymbolTable();
+            // Semantic check the AST
+            new SemanticChecker(symbolTable, parser.location).visit(program);
+            // Convert our AST to intermediate representation
+            new IRBuilder(symbolTable).visit(program);
 		} catch (IOException e) {
 			System.err.println("ERROR: Unable to open file: " + args[0]);
 		} catch (Exception e) {

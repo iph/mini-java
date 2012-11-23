@@ -87,13 +87,14 @@ program              ::= main_class:mainClass class_decl_list:classes
                          :}
                        ;
 
-main_class           ::= CLASS identifier:name
+main_class           ::= CLASS:c identifier:name
                          LCURLY PUBLIC STATIC VOID MAIN 
                          LPAREN STRING LBRACKET RBRACKET identifier:arg RPAREN
                          LCURLY statement:stmt RCURLY
                          RCURLY
                          {: 
                             RESULT = new MainClass(name, arg, stmt); 
+                            parser.location.put(RESULT, c);
                          :}
                        ;
 
@@ -108,15 +109,17 @@ class_decl_list      ::= class_decl_list:classes class_decl:classDecl
                          :}
                        ;
 
-class_decl           ::= CLASS identifier:name EXTENDS identifier:parentName
+class_decl           ::= CLASS:c identifier:name EXTENDS identifier:parentName
                          LCURLY var_decl_list:vars method_decl_list:methods RCURLY
                          {:
                             RESULT = new ClassDeclExtends(name, parentName, vars, methods); 
+                            parser.location.put(RESULT, c);
                          :}
-                       | CLASS identifier:name
+                       | CLASS:c identifier:name
                          LCURLY var_decl_list:vars method_decl_list:methods RCURLY
                          {:
                             RESULT = new ClassDeclSimple(name, vars, methods); 
+                            parser.location.put(RESULT, c);
                          :}
                        | error RCURLY:e
                          {:
@@ -160,9 +163,10 @@ method_decl_list     ::= method_decl_list:methods method_decl:methodDecl
                          :}
                        ;
 
-var_decl             ::= type:t identifier:name SEMI
+var_decl             ::= type:t identifier:name SEMI:s
                          {:
-                            RESULT = new VarDecl(t, name); 
+                            RESULT = new VarDecl(t, name);
+                            parser.location.put(RESULT, s); 
                          :}
                        | type error SEMI:e
                          {:
@@ -170,10 +174,11 @@ var_decl             ::= type:t identifier:name SEMI
                          :}
                        ;
 
-method_decl          ::= PUBLIC type:returnType identifier:name formal_header:formals 
+method_decl          ::= PUBLIC:p type:returnType identifier:name formal_header:formals 
                          LCURLY var_decl_list:vars statement_list:statements RETURN expression:exp SEMI RCURLY
                          {:
                             RESULT = new MethodDecl(returnType, name, formals, vars, statements, exp);
+                            parser.location.put(RESULT, p);
                          :}
                        | error RCURLY:e
                          {:
@@ -205,9 +210,10 @@ formal_list          ::= type:t identifier:name formal_rest_list:formals
                          :}
                        ;
 
-formal_rest          ::= COMMA type:t identifier:name
+formal_rest          ::= COMMA:c type:t identifier:name
                          {:
                             RESULT = new Formal(t, name);
+                            parser.location.put(RESULT, c);
                          :}
                        ;
 
@@ -222,47 +228,57 @@ formal_rest_list     ::= formal_rest_list:formals formal_rest:formal
                          :}
                        ;
 
-type                 ::= INTTYPE LBRACKET RBRACKET
+type                 ::= INTTYPE:i LBRACKET RBRACKET
                          {:
                             RESULT = new IntArrayType();
+                            parser.location.put(RESULT, i);
                          :}
-                       | INTTYPE
+                       | INTTYPE:i
                          {:
                             RESULT = new IntegerType();
+                            parser.location.put(RESULT, i);
                          :}
-                       | BOOLEANTYPE
+                       | BOOLEANTYPE:b
                          {:
                             RESULT = new BooleanType();
+                            parser.location.put(RESULT, b);
                          :}
                        | IDENTIFIER:userClass
                          {:
                             RESULT = new IdentifierType((String)(userClass.value));
+                            parser.location.put(RESULT, userClass);
                          :}
                        ;
 
-statement            ::= LCURLY statement_list:statements RCURLY
+statement            ::= LCURLY:l statement_list:statements RCURLY
                          {:
                             RESULT = new Block(statements);
+                            parser.location.put(RESULT, l);
                          :}
-                       | IF LPAREN expression:exp RPAREN statement:ifStmt ELSE statement:elseStmt
+                       | IF:i LPAREN expression:exp RPAREN statement:ifStmt ELSE statement:elseStmt
                          {:
                             RESULT = new If(exp, ifStmt, elseStmt);
+                            parser.location.put(RESULT, i);
                          :}
-                       | WHILE LPAREN expression:exp RPAREN statement:stmt
+                       | WHILE:w LPAREN expression:exp RPAREN statement:stmt
                          {:
                             RESULT = new While(exp, stmt);
+                            parser.location.put(RESULT, w);
                          :}
-                       | PRINTLN LPAREN expression:exp RPAREN SEMI
+                       | PRINTLN:p LPAREN expression:exp RPAREN SEMI
                          {:
                             RESULT = new Print(exp);
+                            parser.location.put(RESULT, p);
                          :}
-                       | identifier:var ASSIGN expression:exp SEMI
+                       | identifier:var ASSIGN:a expression:exp SEMI
                          {:
                             RESULT = new Assign(var, exp);
+                            parser.location.put(RESULT, a);
                          :}
-                       | identifier:var LBRACKET expression:index RBRACKET ASSIGN expression:exp SEMI
+                       | identifier:var LBRACKET expression:index RBRACKET ASSIGN:a expression:exp SEMI
                          {:
                             RESULT = new ArrayAssign(var, index, exp);
+                            parser.location.put(RESULT, a);
                          :}
                        | error SEMI:e
                          {:
@@ -270,37 +286,45 @@ statement            ::= LCURLY statement_list:statements RCURLY
                          :}
                        ;
 
-expression           ::= expression:exp1 AND expression:exp2
+expression           ::= expression:exp1 AND:a expression:exp2
                          {:
                             RESULT = new And(exp1, exp2);
+                            parser.location.put(RESULT, a);
                          :}
-                       | expression:exp1 LESSTHAN expression:exp2
+                       | expression:exp1 LESSTHAN:lt expression:exp2
                          {:
                             RESULT = new LessThan(exp1, exp2);
+                            parser.location.put(RESULT, lt);
                          :}
-                       | expression:exp1 PLUS expression:exp2
+                       | expression:exp1 PLUS:p expression:exp2
                          {:
                             RESULT = new Plus(exp1, exp2);
+                            parser.location.put(RESULT, p);
                          :}
-                       | expression:exp1 MINUS expression:exp2
+                       | expression:exp1 MINUS:m expression:exp2
                          {:
                             RESULT = new Minus(exp1, exp2);
+                            parser.location.put(RESULT, m);
                          :}
-                       | expression:exp1 TIMES expression:exp2
+                       | expression:exp1 TIMES:t expression:exp2
                          {:
                             RESULT = new Times(exp1, exp2);
+                            parser.location.put(RESULT, t);
                          :}
-                       | expression:exp LBRACKET expression:index RBRACKET
+                       | expression:exp LBRACKET:l expression:index RBRACKET
                          {:
                             RESULT = new ArrayLookup(exp, index);
+                            parser.location.put(RESULT, l);
                          :}
-                       | expression:exp DOT LENGTH
+                       | expression:exp DOT:d LENGTH
                          {:
                             RESULT = new ArrayLength(exp);
+                            parser.location.put(RESULT, d);
                          :}
-                       | expression:exp DOT identifier:method LPAREN expression_list:exprs RPAREN
+                       | expression:exp DOT:d identifier:method LPAREN expression_list:exprs RPAREN
                          {:
                             RESULT = new Call(exp, method, exprs);
+                            parser.location.put(RESULT, d);
                          :}
                        | expression:exp DOT identifier:method error RPAREN:e
                          {:
@@ -326,19 +350,22 @@ expression           ::= expression:exp1 AND expression:exp2
                             RESULT = new This();
                             parser.location.put(RESULT, t);
                          :}
-                       | NEW INTTYPE LBRACKET expression:exp RBRACKET
+                       | NEW:n INTTYPE LBRACKET expression:exp RBRACKET
                          {:
                             RESULT = new NewArray(exp);
+                            parser.location.put(RESULT, n);
                          :}
-                       | NEW identifier:userClass LPAREN RPAREN
+                       | NEW:n identifier:userClass LPAREN RPAREN
                          {:
                             RESULT = new NewObject(userClass);
+                            parser.location.put(RESULT, n);
                          :}
-                       | NOT expression:exp
+                       | NOT:n expression:exp
                          {:
                             RESULT = new Not(exp);
+                            parser.location.put(RESULT, n);
                          :}
-                       | LPAREN expression:exp RPAREN
+                       | LPAREN:l expression:exp RPAREN
                          {:
                             RESULT = exp;
                          :}
