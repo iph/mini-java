@@ -2,7 +2,7 @@ package visitor;
 
 import syntaxtree.*;
 
-public interface Visitor {
+public interface SemanticVisitor {
   public void visit(Program n);
   public void visit(MainClass n);
   public void visit(ClassDeclSimple n);

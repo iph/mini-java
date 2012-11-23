@@ -6,7 +6,7 @@ public class While extends Statement {
   public Statement s;
 
   public While(Exp ae, Statement as) {
-    e=ae; s=as; 
+    e=ae; s=as;
   }
 
   public void accept(Visitor v) {
@@ -18,6 +18,10 @@ public class While extends Statement {
   }
 
   public void accept(IRVisitor v) {
+    v.visit(this);
+  }
+
+  public void accept(SemanticVisitor v) {
     v.visit(this);
   }
 }

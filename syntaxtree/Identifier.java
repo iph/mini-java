@@ -19,6 +19,10 @@ public class Identifier {
   public String accept(IRVisitor v) {
     return v.visit(this);
   }
+
+  public String accept(SemanticVisitor v) {
+    return v.visit(this);
+  }
   
   public String toString(){
     return s;

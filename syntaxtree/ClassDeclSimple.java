@@ -21,4 +21,8 @@ public class ClassDeclSimple extends ClassDecl {
   public void accept(IRVisitor v) {
     v.visit(this);
   }
+
+  public void accept(SemanticVisitor v) {
+    v.visit(this);
+  }
 }
