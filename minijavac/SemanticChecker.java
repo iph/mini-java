@@ -17,7 +17,7 @@ public class SemanticChecker implements SemanticVisitor {
         environment = s;
     }
 
-    public String getType(Type t){
+    private String getType(Type t){
         String type;
         if(t instanceof IntArrayType){
             type = "int array";
@@ -33,6 +33,19 @@ public class SemanticChecker implements SemanticVisitor {
             type = id.s;
         }
         return type;
+    }
+
+    private boolean isSubclassOf(String classNameA, String classNameB) {
+        // FIXME: We need some kind of assurance that we're getting a
+        //        ClassAttribute back, and not something else that happens
+        //        to have the same name. Keep a hashmap of classes? Add
+        //        methods to symbol table to do that?
+        Object classA = environment.get(classNameA);
+        if (classA == null) {
+            // it's a primitive type
+            return false;
+        }
+        return (((ClassAttribute)classA).hasSuperclass(classNameB));
     }
 
     public void visit(Program n){
@@ -204,18 +217,50 @@ public class SemanticChecker implements SemanticVisitor {
     }
     public String visit(LessThan n) {
         //TODO: Check integer for expressions
+        if (!n.e1.accept(this).equals("int") ||
+            !n.e2.accept(this).equals("int")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-integer operand for operator < at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
+        }
         return "boolean";
     }
     public String visit(Plus n) {
         //TODO: Check integer for expressions.
+        if (!n.e1.accept(this).equals("int") ||
+            !n.e2.accept(this).equals("int")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-integer operand for operator + at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
+        }
         return "int";
     }
     public String visit(Minus n) {
         //TODO: Check integer for expresions.
+        if (!n.e1.accept(this).equals("int") ||
+            !n.e2.accept(this).equals("int")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-integer operand for operator - at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
+        }
         return "int";
     }
     public String visit(Times n) {
         //TODO: Check integer for expressions.
+        if (!n.e1.accept(this).equals("int") ||
+            !n.e2.accept(this).equals("int")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-integer operand for operator * at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
+        }
         return "int";
     }
 
@@ -250,6 +295,7 @@ public class SemanticChecker implements SemanticVisitor {
     public void visit(Print n){}
     public void visit(Assign n){
         String exprType = n.e.accept(this);
+
         // FIXME: is this check necessary?
         if(!environment.hasId(n.i.s)){
             System.out.printf("WHAT YOU DOING STUPID?\n");
@@ -273,10 +319,9 @@ public class SemanticChecker implements SemanticVisitor {
             return;
         }
 
-        //TODO: Make sure right hand type == left hand type.
-        //TODO: deal with polymorphism?
+        //TODO: Make sure right hand type == left hand type, accounting for polymorphism
         String identifierType = ((VariableAttribute)attr).getType();
-        if (!exprType.equals(identifierType)) {
+        if (!exprType.equals(identifierType) && !isSubclassOf(exprType, identifierType)) {
             MJToken token = location.get(n);
             System.out.printf("Type mismatch during assignment at line %d, character %d\n",
                               token.line, token.column);
