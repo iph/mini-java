@@ -27,8 +27,4 @@ public class Identifier {
   public String toString(){
     return s;
   }
-
-  public String accept(SemanticVisitor v) {
-    return v.visit(this);
-  }
 }
