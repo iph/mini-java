@@ -328,7 +328,7 @@ expression           ::= expression:exp1 AND:a expression:exp2
                          :}
                        | expression:exp DOT identifier:method error RPAREN:e
                          {:
-                            parser.report_error("Parser error", e);
+                            parser.report_error("Parse error", e);
                          :}
                        | integer:i
                          {:
