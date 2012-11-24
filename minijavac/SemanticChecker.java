@@ -174,7 +174,7 @@ public class SemanticChecker implements SemanticVisitor {
     public String visit(This n) {
         if(inMain){
             MJToken token = location.get(n);
-            System.out.printf("Illegal use of keyword 'this' in static method at line %d, character %d\n",
+            System.out.printf("Illegal use of keyword ‘this’ in static method at line %d, character %d\n",
                              token.line, token.column);
             hasError = true;
             return "";
@@ -249,19 +249,22 @@ public class SemanticChecker implements SemanticVisitor {
     }
     public void visit(Print n){}
     public void visit(Assign n){
-        n.e.accept(this);
+        String exprType = n.e.accept(this);
+        // FIXME: is this check necessary?
         if(!environment.hasId(n.i.s)){
             System.out.printf("WHAT YOU DOING STUPID?\n");
             hasError = true;
             return;
         }
+
+        Attribute attr = (Attribute)environment.get(n.i.s);
         //Check for left value assignment of this or class/method name.
-        if(n.i.s.equalsIgnoreCase("this") || !(environment.get(n.i.s) instanceof VariableAttribute)){
+        if (n.i.s.equals("this") || !(attr instanceof VariableAttribute)) {
             MJToken token = location.get(n);
             String type = "reference"; // FIXME: what do we call a 'this'?
-            if (environment.get(n.i.s) instanceof ClassAttribute) {
+            if (attr instanceof ClassAttribute) {
                 type = "class";
-            } else if (environment.get(n.i.s) instanceof MethodAttribute) {
+            } else if (attr instanceof MethodAttribute) {
                 type = "method";
             }
             System.out.printf("Invalid l-value, %s is a %s, at line %d, character %d\n",
@@ -271,6 +274,15 @@ public class SemanticChecker implements SemanticVisitor {
         }
 
         //TODO: Make sure right hand type == left hand type.
+        //TODO: deal with polymorphism?
+        String identifierType = ((VariableAttribute)attr).getType();
+        if (!exprType.equals(identifierType)) {
+            MJToken token = location.get(n);
+            System.out.printf("Type mismatch during assignment at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return;
+        }
     }
     public void visit(ArrayAssign n){
         //String expressionInt = n.e1.accept(this);
