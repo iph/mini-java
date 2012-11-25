@@ -135,14 +135,13 @@ public class SemanticChecker implements SemanticVisitor {
 
         // Is this an object we're dealing with?
         if (!environment.hasId(objType) || !(environment.get(objType) instanceof ClassAttribute)) {
-            // FIXME: should this be the error message we output?
             MJToken token = location.get(n);
             System.out.printf("Attempt to call a non-method at line %d, character %d\n",
                               token.line, token.column);
             hasError = true;
             return "";
         }
-        
+
         // Make sure the method exists on the object
         ClassAttribute objClass = (ClassAttribute)environment.get(objType);
         if (!objClass.hasMethod(n.i.s)) {
@@ -389,8 +388,6 @@ public class SemanticChecker implements SemanticVisitor {
             System.out.printf("Non-boolean expression used as the condition of if statement at line %d, character %d\n",
                               token.line, token.column);
             hasError = true;
-            // FIXME: should this return or go on to evaluate the statements?
-            return;
         }
         n.s1.accept(this);
         n.s2.accept(this);
@@ -402,7 +399,6 @@ public class SemanticChecker implements SemanticVisitor {
             System.out.printf("Non-boolean expression used as the condition of while statement at line %d, character %d\n",
                               token.line, token.column);
             hasError = true;
-            // FIXME: should this return or go on to evaluate the statement?
             return;
         }
         n.s.accept(this);
@@ -434,7 +430,6 @@ public class SemanticChecker implements SemanticVisitor {
         }
         String exprType = n.e.accept(this);
 
-        // FIXME: is this check necessary? YES
         if(!environment.hasId(n.i.s)){
             MJToken token = location.get(n.i);
             System.out.printf("Use of undefined identifier %s at line %d, character %d\n", n.i.s, token.line, token.column);
@@ -446,7 +441,7 @@ public class SemanticChecker implements SemanticVisitor {
         //Check for left value assignment of this or class/method name.
         if (n.i.s.equals("this") || !(attr instanceof VariableAttribute)) {
             MJToken token = location.get(n);
-            String type = "reference"; // FIXME: what do we call a 'this'?
+            String type = "reference"; // FIXME: what do we call a 'this'? 'this'.
             if (attr instanceof ClassAttribute) {
                 type = "class";
             } else if (attr instanceof MethodAttribute) {
@@ -481,7 +476,7 @@ public class SemanticChecker implements SemanticVisitor {
         //Check for left value assignment of this or class/method name.
         if(n.i.s.equalsIgnoreCase("this") || !(environment.get(n.i.s) instanceof VariableAttribute)){
             MJToken token = location.get(n);
-            String type = "reference"; // FIXME: what do we call a 'this'?
+            String type = "reference"; // FIXME: what do we call a 'this'? 'this'
             if (environment.get(n.i.s) instanceof ClassAttribute) {
                 type = "class";
             } else if (environment.get(n.i.s) instanceof MethodAttribute) {
