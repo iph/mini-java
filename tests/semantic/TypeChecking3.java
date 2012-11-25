@@ -9,13 +9,14 @@ class Foo {
 	public int Bar() {
 		A a;
 		int x;
-		boolean y;
 
-		x = a.subtract();
-		x = a.A();
-		x = this.A();
-		x = a.y();
-		x = this.y();
+		x = a + 1;
+		x = a.add(1, 2) + 1;
+		x = Bar + 1;
+		x = Foo + 1;
+		x = A + 1;
+		x = Foo.A() + 1;
+		x = Foo.Bar() + 1;
 		
 		return 0;
 	}
