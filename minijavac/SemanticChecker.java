@@ -215,13 +215,20 @@ public class SemanticChecker implements SemanticVisitor {
         return "boolean";
     }
     public String visit(IdentifierExp n) {
-        // Check if the identifier is a method/class.
-        if(environment.hasId(n.s) && environment.get(n.s) instanceof VariableAttribute){
-            VariableAttribute var = (VariableAttribute)environment.get(n.s);
-            return var.getType();
+        // has the identifier we're using been defined? If so, is it a method/class?
+        if (!environment.hasId(n.s) || !(environment.get(n.s) instanceof VariableAttribute)) {
+            MJToken token = location.get(n);
+            System.out.printf("Use of undefined identifier %s at line %d, character %d\n", n.s, token.line, token.column);
+            hasError = true;
+            if (environment.hasId(n.s)) {
+                return n.s;
+            }
+            return "";
         }
-        return n.s;
-   }
+
+        return ((VariableAttribute)environment.get(n.s)).getType();
+    }
+
     public String visit(This n) {
         if(inMain){
             MJToken token = location.get(n);
