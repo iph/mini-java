@@ -1,13 +1,3 @@
-invalid l-value, %s is a %s, at line %d, character %d
-
-If there is an attempt to assign from a class or method name, output the message:
-Invalid r-value: %s is a %s, at line %d, character %d
-
-If an operator is applied to a class or method name, output the message:
-Invalid operands for %s operator, at line %d, character %d
-
-If a method is called with the wrong type of argument:
-Call of method %s does not match its declared signature at line %d, character %d
 
 If you attempt to use an arithmetic or comparison operator (<, +, -, *) with non-integer operands, output:
 Non-integer operand for operator %c at line %d, character %d

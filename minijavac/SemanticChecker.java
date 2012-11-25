@@ -51,8 +51,9 @@ public class SemanticChecker implements SemanticVisitor {
         //        ClassAttribute back, and not something else that happens
         //        to have the same name. Keep a hashmap of classes? Add
         //        methods to symbol table to do that?
+        // FIX: Instanceof.
         Object classA = environment.get(classNameA);
-        if (classA == null) {
+        if (classA == null || !(classA instanceof ClassAttribute)) {
             // it's a primitive type
             return false;
         }
@@ -110,10 +111,6 @@ public class SemanticChecker implements SemanticVisitor {
             n.sl.elementAt(i).accept(this);
         }
         //Evaluate the return expression as well..
-        //TODO: Should we treat this differently since it is a return?
-        // YES! Gotta check the type vs declared return type.
-        // TODO: Does that mean we need to return something other than void? for visitor
-        // YES, GONNA HAVE TO CHANGE THIS FUCKER SOON.
         n.e.accept(this);
 
         //Teardown
@@ -121,20 +118,7 @@ public class SemanticChecker implements SemanticVisitor {
     }
 
     //Expression work.
-    // TODO: As explained above, these can't return void, but need to return
-    //       a real type back in the form of a string.
-    // Current types:
-    //       "int"
-    //       "int array"
-    //       "String array" (it's capitalized because I CAN!)
-    //       "boolean"
-    //       "#{id_type}" the actual id for a class.
-    //       Discuss this with me over text plox.
-    //
-    // TODO: Implementation work shouldn't be too bad. All the scope is currently
-    //       defined, so use the environment.get(String) to get any attributes.
-    //       To check an attribute, just use instance of.
-    public String visit(Call n){
+       public String visit(Call n){
         // Check to see if the identifier is a method.
         if(!environment.hasId(n.i.s) || !(environment.get(n.i.s) instanceof MethodAttribute)){
             MJToken token = location.get(n);
@@ -357,15 +341,13 @@ public class SemanticChecker implements SemanticVisitor {
     }
 
     //Statement work.
-    //TODO: Again, statement scope is already defined. It is a matter of
-    //      implementing the checks on expression and individual statements.
     public void visit(Block n){
         for(int i = 0; i < n.sl.size(); i++){
             n.sl.elementAt(i).accept(this);
         }
     }
     public void visit(If n){
-        //TODO: Make sure boolean evaluation.
+        // boolean evaluation.
         if (!n.e.accept(this).equals("boolean")) {
             MJToken token = location.get(n);
             System.out.printf("Non-boolean expression used as the condition of if statement at line %d, character %d\n",
@@ -377,7 +359,7 @@ public class SemanticChecker implements SemanticVisitor {
         n.s2.accept(this);
     }
     public void visit(While n){
-        //TODO: Make sure boolean evaluation.
+        // Make sure boolean evaluation.
         if (!n.e.accept(this).equals("boolean")) {
             MJToken token = location.get(n);
             System.out.printf("Non-boolean expression used as the condition of while statement at line %d, character %d\n",
@@ -426,7 +408,7 @@ public class SemanticChecker implements SemanticVisitor {
             return;
         }
 
-        //TODO: Make sure right hand type == left hand type, accounting for polymorphism
+        // right hand type == left hand type, accounting for polymorphism
         String identifierType = ((VariableAttribute)attr).getType();
         if (!exprType.equals(identifierType) && !isSubclassOf(exprType, identifierType)) {
             MJToken token = location.get(n);
