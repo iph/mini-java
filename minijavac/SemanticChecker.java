@@ -178,28 +178,29 @@ public class SemanticChecker implements SemanticVisitor {
     }
 
     public String visit(And n) {
-        // Check boolean in expressions.
+        // Check integer for expresions.
+        String e1str = n.e1.accept(this);
+        String e2str = n.e2.accept(this);
         if(hasBadIdentifier(n.e1)){
-            String id = n.e1.accept(this);
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for && operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
         if(hasBadIdentifier(n.e2)){
-            String id = n.e2.accept(this);
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for && operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
 
-        if (!n.e1.accept(this).equals("boolean") ||
-            !n.e2.accept(this).equals("boolean")) {
+        if (!e1str.equals("boolean") ||
+            !e2str.equals("boolean")) {
             MJToken token = location.get(n);
-            System.out.printf("Attempt to use boolean operator && on non-boolean operands at line %d, character %d\n",
+            System.out.printf("Non-boolean operand for operator && at line %d, character %d\n",
                               token.line, token.column);
             hasError = true;
             return "";
         }
+
         return "boolean";
     }
     public String visit(ArrayLookup n) {
@@ -239,16 +240,15 @@ public class SemanticChecker implements SemanticVisitor {
         return n.i.s;
     }
     public String visit(Not n){
-        // Check boolean in expressions.
+        // Check integer for expresions.
+        String e1str = n.e.accept(this);
         if(hasBadIdentifier(n.e)){
-            String id = n.e.accept(this);
             MJToken token = location.get(n.e);
             System.out.printf("Invalid operands for ! operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
 
-        // NOTE: I added this error because it's necessary. I made the message parallel the non-integer ones.
-        if (!n.e.accept(this).equals("boolean")) {
+        if (!e1str.equals("boolean")) {
             MJToken token = location.get(n);
             System.out.printf("Non-boolean operand for operator ! at line %d, character %d\n",
                               token.line, token.column);
@@ -270,46 +270,48 @@ public class SemanticChecker implements SemanticVisitor {
         return "int";
     }
     public String visit(LessThan n) {
-        // Check integer for expressions
+        // Check integer for expresions.
+        String e1str = n.e1.accept(this);
+        String e2str = n.e2.accept(this);
         if(hasBadIdentifier(n.e1)){
-            String id = n.e1.accept(this);
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for < operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
         if(hasBadIdentifier(n.e2)){
-            String id = n.e2.accept(this);
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for < operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if (!n.e1.accept(this).equals("int") ||
-            !n.e2.accept(this).equals("int")) {
+
+        if (!e1str.equals("boolean") ||
+            !e2str.equals("boolean")) {
             MJToken token = location.get(n);
-            System.out.printf("Non-integer operand for operator < at line %d, character %d\n",
+            System.out.printf("Non-boolean operand for operator < at line %d, character %d\n",
                               token.line, token.column);
             hasError = true;
             return "";
         }
 
         return "boolean";
-    }
+     }
     public String visit(Plus n) {
-        //Check integer for expressions.
+        // Check integer for expresions.
+        String e1str = n.e1.accept(this);
+        String e2str = n.e2.accept(this);
         if(hasBadIdentifier(n.e1)){
-            String id = n.e1.accept(this);
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for + operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
         if(hasBadIdentifier(n.e2)){
-            String id = n.e2.accept(this);
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for + operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if (!n.e1.accept(this).equals("int") ||
-            !n.e2.accept(this).equals("int")) {
+
+        if (!e1str.equals("int") ||
+            !e2str.equals("int")) {
             MJToken token = location.get(n);
             System.out.printf("Non-integer operand for operator + at line %d, character %d\n",
                               token.line, token.column);
@@ -321,21 +323,21 @@ public class SemanticChecker implements SemanticVisitor {
     }
     public String visit(Minus n) {
         // Check integer for expresions.
+        String e1str = n.e1.accept(this);
+        String e2str = n.e2.accept(this);
         if(hasBadIdentifier(n.e1)){
-            String id = n.e1.accept(this);
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for - operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
         if(hasBadIdentifier(n.e2)){
-            String id = n.e2.accept(this);
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for - operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
 
-        if (!n.e1.accept(this).equals("int") ||
-            !n.e2.accept(this).equals("int")) {
+        if (!e1str.equals("int") ||
+            !e2str.equals("int")) {
             MJToken token = location.get(n);
             System.out.printf("Non-integer operand for operator - at line %d, character %d\n",
                               token.line, token.column);
@@ -346,29 +348,31 @@ public class SemanticChecker implements SemanticVisitor {
         return "int";
     }
     public String visit(Times n) {
-        //Check integer for expressions.
+         // Check integer for expresions.
+        String e1str = n.e1.accept(this);
+        String e2str = n.e2.accept(this);
         if(hasBadIdentifier(n.e1)){
-            String id = n.e1.accept(this);
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for * operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
         if(hasBadIdentifier(n.e2)){
-            String id = n.e2.accept(this);
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for * operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if (!n.e1.accept(this).equals("int") ||
-            !n.e2.accept(this).equals("int")) {
+
+        if (!e1str.equals("int") ||
+            !e2str.equals("int")) {
             MJToken token = location.get(n);
             System.out.printf("Non-integer operand for operator * at line %d, character %d\n",
                               token.line, token.column);
             hasError = true;
             return "";
         }
+
         return "int";
-    }
+     }
 
     public String visit(Identifier n) {
         return n.s;
@@ -425,6 +429,7 @@ public class SemanticChecker implements SemanticVisitor {
             else{
                 System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", leftSide, "Class", token.line, token.column);
             }
+            hasError = true;
 
         }
         String exprType = n.e.accept(this);
