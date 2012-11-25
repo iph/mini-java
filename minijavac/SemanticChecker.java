@@ -98,7 +98,6 @@ public class SemanticChecker implements SemanticVisitor {
         environment.endScope();
     }
     public void visit(ClassDeclExtends n){
-        //TODO: STILL NEED TO FIGURE OUT EXTENDS
          environment.startScope();
         ClassAttribute cls = (ClassAttribute)environment.get(n.i.s);
         cls.getInMyScope(environment);

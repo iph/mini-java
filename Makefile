@@ -2,6 +2,11 @@ INPUT_FILE = tests/BubbleSort.java
 OUTPUT_FILE = pretty.java
 
 TEST_FILE = semantic/TypeChecking9.java
+TEST_FILES = easy-test.java test.java BubbleSort.java \
+			 semantic/TypeChecking10.java semantic/TypeChecking11.java semantic/TypeChecking12.java \
+			 semantic/TypeChecking9.java
+
+RUN = java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac.minijavac
 
 FLEX_FILE = MiniJavaLexer.jflex
 GRAMMAR_FILE = MiniJavaParser.cup
@@ -19,11 +24,17 @@ build_class:
 	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac.java
 
 run:
-	java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac $(INPUT_FILE)
+	$(RUN) $(INPUT_FILE)
 
-test:
-	java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac tests/$(TEST_FILE)
+test:            
+	javac minijavac/TestSuite.java
+	for test in $(TEST_FILES); do \
+		$(RUN) tests/$$test > test_output/$$test; \
+		java minijavac.TestSuite test_output/$$test test_expected/$$test $$test;\
+	done
 
+test_suite:
+	$(foreach var, $(TEST_FILES),java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac tests/$(var);)
 save:
 	java -classpath `pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac $(INPUT_FILE) > $(OUTPUT_FILE)
 clean:
