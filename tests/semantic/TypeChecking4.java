@@ -1,19 +1,14 @@
-class TypeChecking1 {
+class TypeChecking4 {
 	public static void main(String[] args) {
 		System.out.println(new Foo().Bar());
 	}
 }
 
 class Foo {
-
-    public int Moo(){
-        return 1;
-    }
 	public int Bar() {
+        int b;
         int a;
-		Doo = 1;
-		Moo = 1;
-        Foo = 1;
+        a = Foo.notReal();
 		return 0;
 	}
 }

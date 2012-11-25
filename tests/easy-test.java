@@ -20,7 +20,7 @@ class Bar extends Foo{
 
 class StupidObject {
 	public int add(int x, int y) {
-		if (x < y && !true && !(x < y) && !x < y && y < x) {
+		if ((x < y) && !true && !(x < y) && !x < y && y < x) {
 			b = +1;
 			// isn't this stupid?
 		} else {

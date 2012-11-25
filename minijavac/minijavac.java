@@ -6,6 +6,7 @@ package minijavac;
 import java_cup.runtime.Symbol;
 import minijavac.tools.*;
 import java.io.*;
+import minijavac.visitor.*;
 import minijavac.syntaxtree.*;
 
 public class minijavac {

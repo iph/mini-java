@@ -39,8 +39,7 @@ public class SemanticChecker implements SemanticVisitor {
         return !type.equalsIgnoreCase("int") && !type.equalsIgnoreCase("int array") && !type.equalsIgnoreCase("boolean");
     }
 
-    public boolean hasBadIdentifier(Exp e){
-        String op = e.accept(this);
+    public boolean hasBadIdentifier(Exp e, String op){
         if(e instanceof IdentifierExp && environment.hasId(op) && !(environment.get(op) instanceof VariableAttribute)){
             return true;
         }
@@ -158,7 +157,7 @@ public class SemanticChecker implements SemanticVisitor {
            System.out.printf("Call of method %s does not match its declared number of arguments at line %d, character %d\n",
                              n.i.s, token.line, token.column);
            hasError = true;
-           return "";
+           return meth.getReturnType();
         }
 
         // Check to see if the type of an argument doesn't match.
@@ -181,12 +180,12 @@ public class SemanticChecker implements SemanticVisitor {
         // Check integer for expresions.
         String e1str = n.e1.accept(this);
         String e2str = n.e2.accept(this);
-        if(hasBadIdentifier(n.e1)){
+        if(hasBadIdentifier(n.e1, e1str)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for && operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if(hasBadIdentifier(n.e2)){
+        if(hasBadIdentifier(n.e2, e2str)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for && operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
@@ -242,7 +241,7 @@ public class SemanticChecker implements SemanticVisitor {
     public String visit(Not n){
         // Check integer for expresions.
         String e1str = n.e.accept(this);
-        if(hasBadIdentifier(n.e)){
+        if(hasBadIdentifier(n.e, e1str)){
             MJToken token = location.get(n.e);
             System.out.printf("Invalid operands for ! operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
@@ -273,21 +272,21 @@ public class SemanticChecker implements SemanticVisitor {
         // Check integer for expresions.
         String e1str = n.e1.accept(this);
         String e2str = n.e2.accept(this);
-        if(hasBadIdentifier(n.e1)){
+        if(hasBadIdentifier(n.e1, e1str)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for < operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if(hasBadIdentifier(n.e2)){
+        if(hasBadIdentifier(n.e2, e2str)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for < operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
 
-        if (!e1str.equals("boolean") ||
-            !e2str.equals("boolean")) {
+        if (!e1str.equals("int") ||
+            !e2str.equals("int")) {
             MJToken token = location.get(n);
-            System.out.printf("Non-boolean operand for operator < at line %d, character %d\n",
+            System.out.printf("Non-integer operand for operator < at line %d, character %d\n",
                               token.line, token.column);
             hasError = true;
             return "";
@@ -299,12 +298,12 @@ public class SemanticChecker implements SemanticVisitor {
         // Check integer for expresions.
         String e1str = n.e1.accept(this);
         String e2str = n.e2.accept(this);
-        if(hasBadIdentifier(n.e1)){
+        if(hasBadIdentifier(n.e1, e1str)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for + operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if(hasBadIdentifier(n.e2)){
+        if(hasBadIdentifier(n.e2, e2str)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for + operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
@@ -325,12 +324,12 @@ public class SemanticChecker implements SemanticVisitor {
         // Check integer for expresions.
         String e1str = n.e1.accept(this);
         String e2str = n.e2.accept(this);
-        if(hasBadIdentifier(n.e1)){
+        if(hasBadIdentifier(n.e1, e1str)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for - operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if(hasBadIdentifier(n.e2)){
+        if(hasBadIdentifier(n.e2, e2str)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for - operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
@@ -351,12 +350,12 @@ public class SemanticChecker implements SemanticVisitor {
          // Check integer for expresions.
         String e1str = n.e1.accept(this);
         String e2str = n.e2.accept(this);
-        if(hasBadIdentifier(n.e1)){
+        if(hasBadIdentifier(n.e1, e1str)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for * operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if(hasBadIdentifier(n.e2)){
+        if(hasBadIdentifier(n.e2, e2str)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for * operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
@@ -420,19 +419,18 @@ public class SemanticChecker implements SemanticVisitor {
         }
     }
     public void visit(Assign n){
-        String leftSide = n.e.accept(this);
-        if(n.e instanceof IdentifierExp && environment.hasId(leftSide) && !(environment.get(leftSide) instanceof VarDecl)){
+        String exprType = n.e.accept(this);
+        if(n.e instanceof IdentifierExp && environment.hasId(exprType) && !(environment.get(exprType) instanceof VarDecl)){
             MJToken token = location.get(n.i);
-            if(environment.get(leftSide) instanceof MethodAttribute){
-                System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", leftSide, "Method", token.line, token.column);
+            if(environment.get(exprType) instanceof MethodAttribute){
+                System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", exprType, "Method", token.line, token.column);
             }
             else{
-                System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", leftSide, "Class", token.line, token.column);
+                System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", exprType, "Class", token.line, token.column);
             }
             hasError = true;
 
         }
-        String exprType = n.e.accept(this);
 
         if(!environment.hasId(n.i.s)){
             MJToken token = location.get(n.i);
