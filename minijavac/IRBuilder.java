@@ -101,6 +101,12 @@ public class IRBuilder implements IRVisitor {
 
         curClass = cls.getIdentifier();
 
+        // TODO: Should the method IR of the parent class be printed out?
+        //       Should I re-visit the AST nodes of the parent class here and re-generate IR?
+        //         That seems kinda silly and problematic ('this' would resolve to this class, not the parent)
+        //       Should I create labels corresponding to the inherited method names that are just
+        //         gotos to the parent class's method?
+        //       Should anything be done at all?
   		for (int i = 0; i < n.ml.size(); i++) {
   			n.ml.elementAt(i).accept(this);
   		}
