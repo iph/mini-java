@@ -37,6 +37,26 @@ public class SymbolTableBuilder implements Visitor {
 			System.out.printf("Multiply defined identifier %s at line %d, character %d\n", id, line, column);
 	}
 
+    public void resolveExtensions(){
+        for(String s: symbolTable.keys()){
+            //Is a superclass, so resolve it.
+            if(symbolTable.get(s) instanceof ClassAttribute){
+                ClassAttribute cls = (ClassAttribute) symbolTable.get(s);
+                if(cls.getParentClassName() != null){
+
+                    //No real parent class, blow up!
+                    if(!symbolTable.hasId(cls.getParentClassName())){
+                        System.out.printf("Use of undefined identifier (class extension) %s at line %d, character %d\n", cls.getParentClassName(),  cls.getLine(), cls.getColumn() );
+                        continue;
+                    }
+                    cls.setParentClass((ClassAttribute)symbolTable.get(cls.getParentClassName()));
+
+                }
+            }
+        }
+
+    }
+
     public String getType(Type t){
         String type;
         if(t instanceof IntArrayType){
@@ -121,6 +141,39 @@ public class SymbolTableBuilder implements Visitor {
         symbolTable.endScope();
 	}
 	public void visit(ClassDeclExtends n) {
+		MJToken curLocation = location.get(n.i);
+
+        if(symbolTable.get(n.i.s) != null)
+            errorRedefinition(n.i.s, curLocation.line, curLocation.column);
+		ClassAttribute cls = new ClassAttribute(n.i.s, curLocation.line, curLocation.column);
+		symbolTable.put(n.i.s, cls);
+        cls.setParentClassName(n.j.s);
+        symbolTable.startScope();
+
+        // Add all class variable definitions.
+		for(int i = 0; i < n.vl.size(); i++){
+			VarDecl v = n.vl.elementAt(i);
+            MJToken token = location.get(v.i);
+            if(cls.hasVariable(v.i.s)){
+                errorRedefinition(v.i.s, token.line, token.column);
+            }
+			v.accept(this);
+			VariableAttribute variable = (VariableAttribute) symbols.pop();
+			cls.addVariable(v.i.s, variable);
+		}
+
+        // Add all method declarations, and check their scope shit as well.
+        for(int i = 0; i < n.ml.size(); i++){
+            MethodDecl m = n.ml.elementAt(i);
+            MJToken token = location.get(m.i);
+            if(cls.hasMethod(m.i.s)){
+                errorRedefinition(m.i.s, token.line, token.column);
+            }
+            m.accept(this);
+            MethodAttribute method = (MethodAttribute) symbols.pop();
+            cls.addMethod(m.i.s, method);
+        }
+        symbolTable.endScope();
 
 	}
 	public void visit(VarDecl n){

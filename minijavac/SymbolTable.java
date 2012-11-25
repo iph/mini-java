@@ -74,6 +74,10 @@ public class SymbolTable {
         return environment.containsKey(id);
     }
 
+    public Set<String> keys(){
+        return environment.keySet();
+    }
+
     public HashMap<String, LinkedList<Object>> getEnvironment() {
         return environment;
     }

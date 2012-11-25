@@ -3,6 +3,20 @@ class Test {
 		System.out.println(new StupidObject().add(5, 4));
 	}
 }
+class Foo{
+    public int A(){
+        return 1;
+    }
+}
+
+class Bar extends Foo{
+    public int B(){
+        int x;
+        /* Works! */
+        x = this.A();
+        return 1;
+    }
+}
 
 class StupidObject {
 	public int add(int x, int y) {
