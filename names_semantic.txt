@@ -20,6 +20,3 @@ Non-boolean expression used as the condition of %s statement at line %d, charact
 
 If the right hand side of an assignment does not match the type of the left hand side, output:
 Type mismatch during assignment at line %d, character %d
-
-If you try to use this in a static method (main), output:
-Illegal use of keyword ‘this’ in static method at line %d, character %d

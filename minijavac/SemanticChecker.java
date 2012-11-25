@@ -17,7 +17,7 @@ public class SemanticChecker implements SemanticVisitor {
         environment = s;
     }
 
-    public String getType(Type t){
+    private String getType(Type t){
         String type;
         if(t instanceof IntArrayType){
             type = "int array";
@@ -46,6 +46,19 @@ public class SemanticChecker implements SemanticVisitor {
         }
         return false;
     }
+    private boolean isSubclassOf(String classNameA, String classNameB) {
+        // FIXME: We need some kind of assurance that we're getting a
+        //        ClassAttribute back, and not something else that happens
+        //        to have the same name. Keep a hashmap of classes? Add
+        //        methods to symbol table to do that?
+        Object classA = environment.get(classNameA);
+        if (classA == null) {
+            // it's a primitive type
+            return false;
+        }
+        return (((ClassAttribute)classA).hasSuperclass(classNameB));
+    }
+
     public void visit(Program n){
         n.m.accept(this);
         for(int i = 0; i < n.cl.size(); i++){
@@ -203,7 +216,7 @@ public class SemanticChecker implements SemanticVisitor {
     public String visit(This n) {
         if(inMain){
             MJToken token = location.get(n);
-            System.out.printf("Illegal use of keyword 'this' in static method at line %d, character %d\n",
+            System.out.printf("Illegal use of keyword ‘this’ in static method at line %d, character %d\n",
                              token.line, token.column);
             hasError = true;
             return "";
@@ -252,6 +265,14 @@ public class SemanticChecker implements SemanticVisitor {
             System.out.printf("Invalid operands for LESS THAN operator, at line %d, character %d", token.line, token.column);
             hasError = true;
         }
+        if (!n.e1.accept(this).equals("int") ||
+            !n.e2.accept(this).equals("int")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-integer operand for operator < at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
+        }
 
         return "boolean";
     }
@@ -268,6 +289,14 @@ public class SemanticChecker implements SemanticVisitor {
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for PLUS operator, at line %d, character %d", token.line, token.column);
             hasError = true;
+        }
+        if (!n.e1.accept(this).equals("int") ||
+            !n.e2.accept(this).equals("int")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-integer operand for operator + at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
         }
 
         return "int";
@@ -287,6 +316,15 @@ public class SemanticChecker implements SemanticVisitor {
             hasError = true;
         }
 
+        if (!n.e1.accept(this).equals("int") ||
+            !n.e2.accept(this).equals("int")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-integer operand for operator - at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
+        }
+
         return "int";
     }
     public String visit(Times n) {
@@ -303,7 +341,14 @@ public class SemanticChecker implements SemanticVisitor {
             System.out.printf("Invalid operands for TIMES operator, at line %d, character %d", token.line, token.column);
             hasError = true;
         }
-
+        if (!n.e1.accept(this).equals("int") ||
+            !n.e2.accept(this).equals("int")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-integer operand for operator * at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
+        }
         return "int";
     }
 
@@ -355,6 +400,9 @@ public class SemanticChecker implements SemanticVisitor {
             }
 
         }
+        String exprType = n.e.accept(this);
+
+        // FIXME: is this check necessary? YES
         if(!environment.hasId(n.i.s)){
             MJToken token = location.get(n.i);
             System.out.printf("Use of undefined identifier %s at line %d, character %d\n", n.i.s, token.line, token.column);
@@ -362,13 +410,14 @@ public class SemanticChecker implements SemanticVisitor {
             return;
         }
 
-       //Check for left value assignment of this or class/method name.
-        if(n.i.s.equalsIgnoreCase("this") || !(environment.get(n.i.s) instanceof VariableAttribute)){
+        Attribute attr = (Attribute)environment.get(n.i.s);
+        //Check for left value assignment of this or class/method name.
+        if (n.i.s.equals("this") || !(attr instanceof VariableAttribute)) {
             MJToken token = location.get(n);
             String type = "reference"; // FIXME: what do we call a 'this'?
-            if (environment.get(n.i.s) instanceof ClassAttribute) {
+            if (attr instanceof ClassAttribute) {
                 type = "class";
-            } else if (environment.get(n.i.s) instanceof MethodAttribute) {
+            } else if (attr instanceof MethodAttribute) {
                 type = "method";
             }
             System.out.printf("Invalid l-value, %s is a %s, at line %d, character %d\n",
@@ -376,11 +425,15 @@ public class SemanticChecker implements SemanticVisitor {
             hasError = true;
             return;
         }
-        VariableAttribute var = (VariableAttribute)environment.get(n.i.s);
-        MJToken token = location.get(n.i);
-        if(!var.getType().equals(n.e.accept(this))){
-            System.out.printf("Type mismatch during assignment at line %d, character %d\n", token.line, token.column);
+
+        //TODO: Make sure right hand type == left hand type, accounting for polymorphism
+        String identifierType = ((VariableAttribute)attr).getType();
+        if (!exprType.equals(identifierType) && !isSubclassOf(exprType, identifierType)) {
+            MJToken token = location.get(n);
+            System.out.printf("Type mismatch during assignment at line %d, character %d\n",
+                              token.line, token.column);
             hasError = true;
+            return;
         }
     }
     public void visit(ArrayAssign n){
