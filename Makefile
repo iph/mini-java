@@ -1,7 +1,7 @@
-INPUT_FILE = tests/easy-test.java
+INPUT_FILE = tests/BubbleSort.java
 OUTPUT_FILE = pretty.java
 
-TEST_FILE = semantic/TypeChecking11.java
+TEST_FILE = semantic/TypeChecking9.java
 
 FLEX_FILE = MiniJavaLexer.jflex
 GRAMMAR_FILE = MiniJavaParser.cup

@@ -249,6 +249,15 @@ public class SemanticChecker implements SemanticVisitor {
             hasError = true;
         }
 
+        // NOTE: I added this error because it's necessary. I made the message parallel the non-integer ones.
+        if (!n.e.accept(this).equals("boolean")) {
+            MJToken token = location.get(n);
+            System.out.printf("Non-boolean operand for operator ! at line %d, character %d\n",
+                              token.line, token.column);
+            hasError = true;
+            return "";
+        }
+
         return "boolean";
     }
     public String visit(ArrayLength n) {
