@@ -1,6 +1,8 @@
 INPUT_FILE = tests/easy-test.java
 OUTPUT_FILE = pretty.java
 
+TEST_FILE = semantic/TypeChecking11.java
+
 FLEX_FILE = MiniJavaLexer.jflex
 GRAMMAR_FILE = MiniJavaParser.cup
 
@@ -15,8 +17,12 @@ build_tools:
 	jflex minijavac/tools/$(FLEX_FILE)
 build_class:
 	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac.java
+
 run:
 	java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac $(INPUT_FILE)
+
+test:
+	java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac tests/$(TEST_FILE)
 
 save:
 	java -classpath `pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac $(INPUT_FILE) > $(OUTPUT_FILE)

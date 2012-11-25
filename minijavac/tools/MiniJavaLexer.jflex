@@ -11,6 +11,7 @@ import java_cup.runtime.Symbol;
 %unicode // input should be considered unicode
 %cup
 %implements sym
+%char
 %line
 %column
 
@@ -20,20 +21,19 @@ import java_cup.runtime.Symbol;
   }
 
   private Symbol token(int type) {
-      return symbol(type, new MJToken(yyline, yycolumn));
+      return symbol(type, new MJToken(yyline+1, yycolumn+1));
   }
 
   private Symbol token(int type, Object value) {
       // wrap the line, col, and value data in a token object that
       // we'll pass to the Symbol class so we won't lose it in the parser
-      return symbol(type, new MJToken(yyline, yycolumn, value));
+      return symbol(type, new MJToken(yyline+1, yycolumn+1, value));
   }
 
   private Symbol symbol(int type, Object value) {
-      return new Symbol(type, yyline, yycolumn, value);
+      return new Symbol(type, yyline+1, yycolumn+1, value);
   }
 %}
-
 
 end_of_line   = [\r\n] 
               | \r\n
