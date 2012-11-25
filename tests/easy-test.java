@@ -6,7 +6,6 @@ class Test {
 
 class StupidObject {
 	public int add(int x, int y) {
-		int b;
 		if (x < y && !true && !(x < y) && !x < y && y < x) {
 			b = +1;
 			// isn't this stupid?
@@ -14,10 +13,10 @@ class StupidObject {
 			b = 3 + +1 * +2 + +3 + -5;
 			/* yeah, pretty dumb * / /* */
 		}
-		
+
 		return x + y;
 	}
-	
+
 	public boolean valid() {
 		return true;
 	}

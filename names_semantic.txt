@@ -15,9 +15,6 @@ Non-integer operand for operator %c at line %d, character %d
 If you attempt to use a Boolean operator with non-boolean types (&&), output:
 Attempt to use boolean operator %s on non-boolean operands at line %d, character %d
 
-If you attempt to use .length on any type other than int [], output:
-Length property only applies to arrays, line %d, character %d
-
 If the condition of an if or while statement does not evaluate to a boolean, output:
 Non-boolean expression used as the condition of %s statement at line %d, character %d
 

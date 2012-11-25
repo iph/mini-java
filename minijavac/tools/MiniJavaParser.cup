@@ -15,6 +15,7 @@ scan with
 parser code
 {: 
     MiniJavaLexer lexer;
+    public boolean hasError;
     public HashMap<Object, MJToken> location;
     public MiniJavaParser(MiniJavaLexer lex) { 
         super(lex); 
@@ -23,6 +24,7 @@ parser code
     }
 
     public void report_error(String message, Object info) {
+        hasError = true;
         if (info == null || info instanceof Symbol)
             return;
 

@@ -20,12 +20,19 @@ public class minijavac {
 			MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileInputStream(args[0])));
             // Store the root AST node from the parse
             Program program = (Program)parser.parse().value;
+            if(parser.hasError){
+                return;
+            }
             // Build a symbol table from our AST
             SymbolTableBuilder symbolTableBuilder = new SymbolTableBuilder(parser.location);
             symbolTableBuilder.visit(program);
             SymbolTable symbolTable = symbolTableBuilder.getSymbolTable();
             // Semantic check the AST
-            new SemanticChecker(symbolTable, parser.location).visit(program);
+            SemanticChecker semantics = new SemanticChecker(symbolTable, parser.location);
+            semantics.visit(program);
+            if(semantics.hasError || symbolTableBuilder.hasError){
+                return;
+            }
             // Convert our AST to intermediate representation
             new IRBuilder(symbolTable).visit(program);
 		} catch (IOException e) {

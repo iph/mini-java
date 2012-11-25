@@ -9,7 +9,7 @@ public class SymbolTableBuilder implements Visitor {
 	SymbolTable symbolTable;
 	Stack <Object> symbols;
 	HashMap<Object, MJToken> location;
-    boolean hasError;
+    public boolean hasError;
 
 	public SymbolTableBuilder(HashMap<Object, MJToken> l) {
 		symbolTable = new SymbolTable();
