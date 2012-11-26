@@ -479,7 +479,7 @@ public class SemanticChecker implements SemanticVisitor {
         //Check for left value assignment of this or class/method name.
         if(n.i.s.equalsIgnoreCase("this") || !(environment.get(n.i.s) instanceof VariableAttribute)){
             MJToken token = location.get(n);
-            String type = "reference";
+            String type = "'this'";
             if (environment.get(n.i.s) instanceof ClassAttribute) {
                 type = "class";
             } else if (environment.get(n.i.s) instanceof MethodAttribute) {
