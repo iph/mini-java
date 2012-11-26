@@ -85,15 +85,22 @@ public class MethodIR {
 		for (int i = 0; i < ir.size(); i++) {
 			// add instruction labels if it has them
 			ArrayList<String> labels = getLabels(ir.get(i));
+			boolean hasLabel = labels.size() > 0 ? true : false;
 			for (int j = 0; j < labels.size(); j++) {
 				if (j == labels.size()-1) {
-					repr += String.format("%s", labels.get(j) + ": ");
+					repr += String.format("%-7s", labels.get(j) + ":");
 				} else {
-					repr += String.format("%s", labels.get(j) + ":\n");
+					repr += String.format("%s:\n", labels.get(j));
 				}
 			}
-			// add instruction
-			repr += String.format("\t%s", ir.get(i).toString() + "\n");
+
+			if (hasLabel) {
+				// add instruction
+				repr += String.format("%s\n", ir.get(i).toString());
+			} else {
+				// add instruction
+				repr += String.format("       %s\n", ir.get(i).toString());
+			}
 		}
 
 		return repr;
