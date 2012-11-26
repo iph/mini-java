@@ -46,11 +46,6 @@ public class SemanticChecker implements SemanticVisitor {
         return false;
     }
     private boolean isSubclassOf(String classNameA, String classNameB) {
-        // FIXME: We need some kind of assurance that we're getting a
-        //        ClassAttribute back, and not something else that happens
-        //        to have the same name. Keep a hashmap of classes? Add
-        //        methods to symbol table to do that?
-        // FIX: Instanceof.
         Object classA = environment.get(classNameA);
         if (classA == null || !(classA instanceof ClassAttribute)) {
             // it's a primitive type
@@ -451,7 +446,7 @@ public class SemanticChecker implements SemanticVisitor {
         //Check for left value assignment of this or class/method name.
         if (n.i.s.equals("this") || !(attr instanceof VariableAttribute)) {
             MJToken token = location.get(n);
-            String type = "'this'"; // FIXME: what do we call a 'this'? 'this'.
+            String type = "'this'";
             if (attr instanceof ClassAttribute) {
                 type = "class";
             } else if (attr instanceof MethodAttribute) {
@@ -483,7 +478,7 @@ public class SemanticChecker implements SemanticVisitor {
         //Check for left value assignment of this or class/method name.
         if(n.i.s.equalsIgnoreCase("this") || !(environment.get(n.i.s) instanceof VariableAttribute)){
             MJToken token = location.get(n);
-            String type = "reference"; // FIXME: what do we call a 'this'? 'this'
+            String type = "reference";
             if (environment.get(n.i.s) instanceof ClassAttribute) {
                 type = "class";
             } else if (environment.get(n.i.s) instanceof MethodAttribute) {
