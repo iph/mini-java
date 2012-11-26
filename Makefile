@@ -2,6 +2,7 @@ INPUT_FILE = tests/BubbleSort.java
 OUTPUT_FILE = BubbleSortIR.txt
 
 TEST_FILES = easy-test.java test.java BubbleSort.java \
+			 ir/Inheritance.java \
 			 semantic/TypeChecking12.java semantic/TypeChecking11.java semantic/TypeChecking10.java \
 			 semantic/TypeChecking9.java semantic/TypeChecking8.java semantic/TypeChecking7.java \
 			 semantic/TypeChecking6.java semantic/TypeChecking5.java semantic/TypeChecking4.java \
