@@ -4,12 +4,10 @@ class TypeChecking3 {
 		System.out.println(new Foo().Bar());
 	}
 }
-
 class Foo {
 	public int Bar() {
 		A a;
 		int x;
-
 		x = a + 1;
 		x = a.add(1, 2) + 1;
 		x = Bar + 1;

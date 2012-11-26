@@ -54,7 +54,7 @@ class Foo {
 
 		}
 
-		if (False < 1) {
+		if (false < 1) {
 
 		} else {
 
@@ -90,7 +90,7 @@ class Foo {
 
 		}
 
-		while (False < 1) {
+		while (false < 1) {
 
 		}
 
