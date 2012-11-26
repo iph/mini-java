@@ -181,12 +181,12 @@ public class SemanticChecker implements SemanticVisitor {
         String expr1 = n.e1.accept(this);
         String expr2 = n.e2.accept(this);
 
-        if(n.e1 instanceof IdentifierExp && hasBadIdentifier(expr1)){
+        if(n.e1 instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e1).s)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for && operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if(n.e2 instanceof IdentifierExp && hasBadIdentifier(expr2)){
+        if(n.e2 instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e2).s)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for && operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
@@ -249,7 +249,7 @@ public class SemanticChecker implements SemanticVisitor {
         // Check integer for expresions.
         String expr = n.e.accept(this);
         // Check boolean in expressions.
-        if(hasBadIdentifier(expr)){
+        if(n.e instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e).s)){
             MJToken token = location.get(n.e);
             System.out.printf("Invalid operands for ! operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
@@ -309,13 +309,13 @@ public class SemanticChecker implements SemanticVisitor {
         String expr2 = n.e2.accept(this);
 
         //Check integer for expressions.
-        if(n.e1 instanceof IdentifierExp && hasBadIdentifier(expr1)){
+        if(n.e1 instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e1).s)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for + operator, at line %d, character %d\n",
                               token.line, token.column);
             hasError = true;
         }
-        if(n.e2 instanceof IdentifierExp && hasBadIdentifier(expr2)){
+        if(n.e2 instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e2).s)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for + operator, at line %d, character %d\n",
                               token.line, token.column);
@@ -336,12 +336,12 @@ public class SemanticChecker implements SemanticVisitor {
         String expr2 = n.e2.accept(this);
 
         // Check integer for expresions.
-        if(n.e1 instanceof IdentifierExp && hasBadIdentifier(expr1)){
+        if(n.e1 instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e1).s)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for - operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if(n.e2 instanceof IdentifierExp && hasBadIdentifier(expr2)){
+        if(n.e2 instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e2).s)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for - operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
@@ -362,12 +362,12 @@ public class SemanticChecker implements SemanticVisitor {
         String expr2 = n.e2.accept(this);
 
         //Check integer for expressions.
-        if(n.e1 instanceof IdentifierExp && hasBadIdentifier(expr1)){
+        if(n.e1 instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e1).s)){
             MJToken token = location.get(n.e1);
             System.out.printf("Invalid operands for * operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
         }
-        if(n.e2 instanceof IdentifierExp && hasBadIdentifier(expr2)){
+        if(n.e2 instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e2).s)){
             MJToken token = location.get(n.e2);
             System.out.printf("Invalid operands for * operator, at line %d, character %d\n", token.line, token.column);
             hasError = true;
