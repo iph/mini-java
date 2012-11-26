@@ -1,12 +1,11 @@
-INPUT_FILE = tests/semantic/TypeChecking11.java
-OUTPUT_FILE = pretty.java
+INPUT_FILE = tests/BubbleSort.java
+OUTPUT_FILE = BubbleSortIR.txt
 
 TEST_FILES = easy-test.java test.java BubbleSort.java \
-			 semantic/TypeChecking10.java semantic/TypeChecking11.java semantic/TypeChecking12.java \
 			 semantic/TypeChecking12.java semantic/TypeChecking11.java semantic/TypeChecking10.java \
 			 semantic/TypeChecking9.java semantic/TypeChecking8.java semantic/TypeChecking7.java \
 			 semantic/TypeChecking6.java semantic/TypeChecking5.java semantic/TypeChecking4.java \
-			 semantic/TypeChecking1.java semantic/TypeChecking2.java semantic/TypeChecking3.java 
+			 semantic/TypeChecking3.java semantic/TypeChecking2.java semantic/TypeChecking1.java 
 
 RUN = java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac.minijavac
 
@@ -31,11 +30,12 @@ run:
 test:            
 	javac minijavac/TestSuite.java
 	for test in $(TEST_FILES); do \
-		$(RUN) tests/$$test > test_output/$$test; \
-		java minijavac.TestSuite test_output/$$test test_expected/$$test $$test;\
+		$(RUN) tests/$$test > tests/actual_output/$$test; \
+		java minijavac.TestSuite tests/actual_output/$$test tests/expected_output/$$test $$test;\
 	done
 
 save:
 	java -classpath `pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac $(INPUT_FILE) > $(OUTPUT_FILE)
+
 clean:
 	rm minijavac/*.class  minijavac/tools/*.class minijavac/syntaxtree/*.class minijavac/visitor/*.class minijavac/ir/*.class
