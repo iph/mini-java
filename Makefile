@@ -6,7 +6,8 @@ TEST_FILES = easy-test.java test.java BubbleSort.java \
 			 semantic/TypeChecking12.java semantic/TypeChecking11.java semantic/TypeChecking10.java \
 			 semantic/TypeChecking9.java semantic/TypeChecking8.java semantic/TypeChecking7.java \
 			 semantic/TypeChecking6.java semantic/TypeChecking5.java semantic/TypeChecking4.java \
-			 semantic/TypeChecking3.java semantic/TypeChecking2.java semantic/TypeChecking1.java 
+			 semantic/TypeChecking3.java semantic/TypeChecking2.java semantic/TypeChecking1.java \
+			 ir/milestone1.java
 
 RUN = java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac.minijavac
 

@@ -424,13 +424,14 @@ public class SemanticChecker implements SemanticVisitor {
     }
     public void visit(Assign n){
        String rightSide = n.e.accept(this);
-        if(n.e instanceof IdentifierExp && environment.hasId(rightSide) && !(environment.get(rightSide) instanceof VarDecl)){
+        if(n.e instanceof IdentifierExp && hasBadIdentifier(((IdentifierExp)n.e).s)){
             MJToken token = location.get(n.i);
-            if(environment.get(rightSide) instanceof MethodAttribute){
-                System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", rightSide, "method", token.line, token.column);
+            String rightSideName = ((IdentifierExp)n.e).s;
+            if(environment.get(rightSideName) instanceof MethodAttribute){
+                System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", rightSideName, "method", token.line, token.column);
             }
             else{
-                System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", rightSide, "class", token.line, token.column);
+                System.out.printf("Invalid r-value, %s is a %s, at line %d, character %d\n", rightSideName, "class", token.line, token.column);
             }
             hasError = true;
         }

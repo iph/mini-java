@@ -226,7 +226,7 @@ public class IRBuilder implements IRVisitor {
 		ins.operator = "param";
 		ins.arg1 = n.e.accept(this);
 		curMethodIR.addQuad(ins);
-		ins = new Quadruple(InstructionType.CALL);
+		ins = new Quadruple(InstructionType.PRINT);
 		ins.operator = "call";
 		ins.arg1 = "System.out.println";
 		// System.out.println takes 1 param (an int)

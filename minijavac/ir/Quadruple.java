@@ -33,11 +33,12 @@ public class Quadruple {
 			return "iftrue " + arg2 + " goto " + arg1;
 		case PARAM:
 			return "param " + arg1;
+        case PRINT:
 		case CALL:
 			if (result.equals("")) {
 				return "call " + arg1 + ", " + arg2;
 			}
-			return result + " := call " + arg1 + ", " + arg2; 
+			return result + " := call " + arg1 + ", " + arg2;
 		case RETURN:
 			return "return " + arg1;
 		case ARRAY_ASSIGN:
