@@ -1,5 +1,5 @@
-INPUT_FILE = tests/BubbleSort.java
-OUTPUT_FILE = BubbleSortIR.txt
+INPUT_FILE = tests/TreeVisitor.java
+OUTPUT_FILE = TreeVisitorIR.txt
 
 TEST_FILES = easy-test.java test.java BubbleSort.java \
 			 ir/Inheritance.java \
