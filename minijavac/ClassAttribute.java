@@ -87,6 +87,19 @@ class ClassAttribute extends Attribute {
         return variables.containsKey(variableName);
 	}
 
+	public boolean inheritsMethod(String methodName) {
+		// we have the method, but it's not in our method list
+		return (hasMethod(methodName) && !(methods.containsKey(methodName)));
+	}
+
+	public ClassAttribute getClassDefiningMethod(String methodName) {
+		if (!inheritsMethod(methodName)) {
+			return this;
+		}
+
+		return parentClass.getClassDefiningMethod(methodName);
+	}
+
     public void getInMyScope(SymbolTable table){
         for(String id: variables.keySet()){
             table.put(id, variables.get(id));

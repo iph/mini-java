@@ -1,4 +1,4 @@
-INPUT_FILE = tests/semantic/TypeChecking3.java
+INPUT_FILE = tests/ir/Inheritance.java
 OUTPUT_FILE = pretty.java
 
 TEST_FILES = easy-test.java test.java BubbleSort.java \

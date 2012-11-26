@@ -15,7 +15,6 @@ public class IRBuilder implements IRVisitor {
 
 	public IRBuilder(SymbolTable symTable) {
 		symbolTable = symTable;
-		classes = new HashMap<String, ClassAttribute>();
 		storeClasses();
 		ir = new HashMap<String, MethodIR>();
 		curMethodIR = null;
@@ -23,6 +22,7 @@ public class IRBuilder implements IRVisitor {
 	}
 
 	public void storeClasses() {
+		classes = new HashMap<String, ClassAttribute>();
 		HashMap<String, LinkedList<Object>> environment = symbolTable.getEnvironment();
 		for (Map.Entry<String, LinkedList<Object>> entry : environment.entrySet()) {
 			Attribute attr = (Attribute)(entry.getValue().get(0));
@@ -345,8 +345,12 @@ public class IRBuilder implements IRVisitor {
   		int numParams = n.el.size() + 1;
 		ins = new Quadruple(InstructionType.CALL);
 		ins.operator = "call";
+		// find which class has the method we're calling
+		String methodName = n.i.accept(this);
+		ClassAttribute klass = classes.get(exprType);
+		klass = klass.getClassDefiningMethod(methodName);
 		// give arg1 the canonical method name
-		ins.arg1 = exprType + "." + n.i.accept(this);
+		ins.arg1 = klass.getIdentifier() + "." + methodName;
 		ins.arg2 = ""+numParams;
 		ins.result = curMethodIR.nextTempVar();
 
