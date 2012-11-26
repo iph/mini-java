@@ -21,6 +21,10 @@ public class IRBuilder implements IRVisitor {
 		curClass = "";
 	}
 
+	public IR getIR() {
+		return new IR(ir);
+	}
+
 	public void storeClasses() {
 		classes = new HashMap<String, ClassAttribute>();
 		HashMap<String, LinkedList<Object>> environment = symbolTable.getEnvironment();
@@ -74,7 +78,7 @@ public class IRBuilder implements IRVisitor {
 		// convert statement to IR
     	n.s.accept(this);
 
-    	System.out.println(curMethodIR);
+    	// System.out.println(curMethodIR);
 
     	symbolTable.endScope();
     	symbolTable.endScope();
@@ -137,7 +141,7 @@ public class IRBuilder implements IRVisitor {
 		// resolve all our labels to quads now
 		curMethodIR.backpatch();
 
-		System.out.println(curMethodIR);
+		// System.out.println(curMethodIR);
 
   		symbolTable.endScope();
 	}
