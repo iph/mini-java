@@ -24,6 +24,18 @@ class ClassAttribute extends Attribute {
 
 	}
 
+    public boolean isSameType(String type){
+        if(type.equals(this.getIdentifier())){
+            return true;
+        }
+        else if(parentClass != null){
+            return parentClass.isSameType(type);
+        }
+        else{
+            return false;
+        }
+    }
+
 	public void addMethod(String name, MethodAttribute m){
 		methods.put(name, m);
 	}

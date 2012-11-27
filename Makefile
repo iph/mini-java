@@ -24,7 +24,7 @@ build_tools:
 	mv sym.java minijavac/tools/
 	jflex minijavac/tools/$(FLEX_FILE)
 build_class:
-	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac.java
+	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac.java minijavac/ClassAttribute.java
 
 run:
 	$(RUN) $(INPUT_FILE)

@@ -17,6 +17,19 @@ public class SemanticChecker implements SemanticVisitor {
         environment = s;
     }
 
+    private boolean checkTypes(String type1, String type2){
+        boolean typeCheck = false;
+        if(environment.hasId(type1) && environment.get(type1) instanceof ClassAttribute){
+            ClassAttribute t = (ClassAttribute) environment.get(type1);
+            typeCheck |= t.isSameType(type2);
+        }
+        if(environment.hasId(type2) && environment.get(type2) instanceof ClassAttribute){
+            ClassAttribute t = (ClassAttribute) environment.get(type2);
+            typeCheck |= t.isSameType(type1);
+        }
+        return typeCheck || type1.equalsIgnoreCase(type2);
+
+    }
     private String getType(Type t){
         String type;
         if(t instanceof IntArrayType){
@@ -81,6 +94,7 @@ public class SemanticChecker implements SemanticVisitor {
         //Setup
         environment.startScope();
         ClassAttribute cls = (ClassAttribute)environment.get(n.i.s);
+        environment.put("this", new VariableAttribute("this", 0, 0, n.i.s) );
         cls.getInMyScope(environment);
         curClass = n.i.s;
         //TRAVERSAL!!!
@@ -95,6 +109,7 @@ public class SemanticChecker implements SemanticVisitor {
          environment.startScope();
         ClassAttribute cls = (ClassAttribute)environment.get(n.i.s);
         cls.getInMyScope(environment);
+        environment.put("this", new VariableAttribute("this", 0, 0, n.i.s) );
         curClass = n.i.s;
         //TRAVERSAL!!!
         for(int i = 0; i < n.ml.size(); i++){
@@ -159,7 +174,7 @@ public class SemanticChecker implements SemanticVisitor {
         for(int i = 0; i < n.el.size(); i++){
             String type = n.el.elementAt(i).accept(this);
             VariableAttribute var = meth.getParameter(i);
-            if(!type.equals(var.getType())){
+            if(!checkTypes(var.getType(), type)){
                MJToken token = location.get(n);
                 System.out.printf("Call of method %s does not match its declared signature at line %d, character %d\n", n.i.s, token.line, token.column);
                 hasError = true;
