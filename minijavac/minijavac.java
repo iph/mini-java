@@ -37,7 +37,12 @@ public class minijavac {
                 return;
             }
             // Convert our AST to intermediate representation
-            new IRBuilder(symbolTable).visit(program);
+            IRBuilder irBuilder = new IRBuilder(symbolTable).visit(program);
+            IR ir = irBuilder.getIR();
+
+            // Generate the MIPS code!
+            CodeGenerator codeGen = new CodeGenerator(ir, symbolTable);
+            codeGen.generate();
 		} catch (IOException e) {
 			System.err.println("ERROR: Unable to open file: " + args[0]);
 		} catch (Exception e) {
