@@ -1,3 +1,5 @@
+HOLY SHIT
+Bar
 Inheritance.main:
        t0 := new Foo
        param t0

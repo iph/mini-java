@@ -1,3 +1,4 @@
+HOLY SHIT
 Non-boolean expression used as the condition of if statement at line 23, character 3
 Non-boolean expression used as the condition of if statement at line 26, character 4
 Non-boolean expression used as the condition of if statement at line 33, character 3

@@ -1,3 +1,5 @@
+HOLY SHIT
+B
 Non-integer operand for operator + at line 11, character 9
 Use of undefined identifier Bar at line 13, character 7
 Invalid operands for + operator, at line 13, character 7

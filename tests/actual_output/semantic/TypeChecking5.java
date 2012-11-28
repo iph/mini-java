@@ -1,3 +1,5 @@
+HOLY SHIT
+B
 Call of method add does not match its declared number of arguments at line 14, character 8
 Call of method add does not match its declared number of arguments at line 15, character 8
 Call of method add does not match its declared number of arguments at line 16, character 8

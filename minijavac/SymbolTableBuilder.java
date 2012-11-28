@@ -91,7 +91,7 @@ public class SymbolTableBuilder implements Visitor {
 		symbolTable.put(n.i1.s, cls);
 		symbolTable.startScope();
 
-		// TODO: Do we include args identifier? There is no method...damnit!
+		// ODO: Do we include args identifier? There is no method...damnit!
 		// THERE ARE NO STRINGS! WHAT TYPE ARE YOU?
 		// Edit (Joel): I don't think we should add the formal to the method attribute, since
 		//              we'll never have the need to check it. But I do need a method attribute for my IR builder

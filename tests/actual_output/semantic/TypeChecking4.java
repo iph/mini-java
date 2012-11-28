@@ -1,3 +1,5 @@
+HOLY SHIT
+B
 Attempt to call a non-method at line 14, character 8
 Type mismatch during assignment at line 14, character 5
 Attempt to call a non-method at line 15, character 8

@@ -1,3 +1,4 @@
+HOLY SHIT
 Non-boolean operand for operator && at line 17, character 18
 Non-boolean operand for operator && at line 18, character 18
 Non-boolean operand for operator && at line 19, character 21

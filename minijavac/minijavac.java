@@ -28,6 +28,7 @@ public class minijavac {
             SymbolTableBuilder symbolTableBuilder = new SymbolTableBuilder(parser.location);
             symbolTableBuilder.visit(program);
             symbolTableBuilder.resolveExtensions();
+            System.
             SymbolTable symbolTable = symbolTableBuilder.getSymbolTable();
             // Semantic check the AST
             SemanticChecker semantics = new SemanticChecker(symbolTable, parser.location);

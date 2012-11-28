@@ -505,7 +505,6 @@ public class SemanticChecker implements SemanticVisitor {
            hasError = true;
            return;
         }
-        VariableAttribute var = (VariableAttribute)environment.get(n.i.s);
         MJToken token = location.get(n.i);
         if(!"int".equals(n.e1.accept(this))){
             System.out.printf("Warning, not using an integer for accessing an array at line %d, character %d\n", token.line, token.column);
