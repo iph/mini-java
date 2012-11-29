@@ -1,4 +1,3 @@
-HOLY SHIT
 BubbleSort.main:
        t0 := new BBS
        param t0

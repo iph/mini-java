@@ -1,4 +1,3 @@
-HOLY SHIT
 Call of method add does not match its declared signature at line 15, character 8
 Call of method add does not match its declared signature at line 16, character 8
 Call of method add does not match its declared signature at line 17, character 8

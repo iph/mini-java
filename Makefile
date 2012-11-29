@@ -9,7 +9,7 @@ TEST_FILES = easy-test.java test.java BubbleSort.java \
 			 semantic/TypeChecking3.java semantic/TypeChecking2.java semantic/TypeChecking1.java \
 			 ir/milestone1.java
 
-RUN = java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac.minijavac
+RUN = java -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac
 
 FLEX_FILE = MiniJavaLexer.jflex
 GRAMMAR_FILE = MiniJavaParser.cup

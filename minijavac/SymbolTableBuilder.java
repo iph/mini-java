@@ -38,13 +38,11 @@ public class SymbolTableBuilder implements Visitor {
 	}
 
     public void resolveExtensions(){
-        System.out.println("HOLY SHIT");
         for(String s: symbolTable.keys()){
             //Is a superclass, so resolve it.
             if(symbolTable.get(s) instanceof ClassAttribute){
                 ClassAttribute cls = (ClassAttribute) symbolTable.get(s);
                 if(cls.getParentClassName() != null){
-                    System.out.println(cls.getParentClassName());
                     //No real parent class, blow up!
                     if(!symbolTable.hasId(cls.getParentClassName())){
                         System.out.printf("Use of undefined identifier (class extension) %s at line %d, character %d\n", cls.getParentClassName(),  cls.getLine(), cls.getColumn() );

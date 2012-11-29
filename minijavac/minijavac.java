@@ -8,6 +8,7 @@ import minijavac.tools.*;
 import java.io.*;
 import minijavac.visitor.*;
 import minijavac.syntaxtree.*;
+import minijavac.ir.IR;
 
 public class minijavac {
 	public static void main(String[] args) {
@@ -28,7 +29,6 @@ public class minijavac {
             SymbolTableBuilder symbolTableBuilder = new SymbolTableBuilder(parser.location);
             symbolTableBuilder.visit(program);
             symbolTableBuilder.resolveExtensions();
-            System.
             SymbolTable symbolTable = symbolTableBuilder.getSymbolTable();
             // Semantic check the AST
             SemanticChecker semantics = new SemanticChecker(symbolTable, parser.location);
@@ -37,7 +37,8 @@ public class minijavac {
                 return;
             }
             // Convert our AST to intermediate representation
-            IRBuilder irBuilder = new IRBuilder(symbolTable).visit(program);
+            IRBuilder irBuilder = new IRBuilder(symbolTable);
+            irBuilder.visit(program);
             IR ir = irBuilder.getIR();
 
             // Generate the MIPS code!

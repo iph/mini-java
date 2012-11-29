@@ -1,4 +1,3 @@
-HOLY SHIT
 Non-integer operand for operator < at line 19, character 18
 Non-integer operand for operator < at line 21, character 18
 Invalid operands for < operator, at line 22, character 20

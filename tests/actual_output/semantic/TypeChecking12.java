@@ -1,4 +1,3 @@
-HOLY SHIT
 Illegal use of keyword ‘this’ in static method at line 5, character 23
 Call of method System.out.println does not match its declared signature at line 5, character 4
 Illegal use of keyword ‘this’ in static method at line 6, character 8

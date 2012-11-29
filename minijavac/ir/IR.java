@@ -1,4 +1,5 @@
 package minijavac.ir;
+import java.util.*;
 
 public class IR {
 	private HashMap<String, MethodIR> methodIR;
