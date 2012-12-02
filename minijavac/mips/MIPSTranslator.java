@@ -34,6 +34,11 @@ public class MIPSTranslator {
 				instructions.addAll(translateQuad(quad));
 			}
 
+			// TODO: is there a better way to check for main?
+			if (methodIR.getMethodName().equals("main")) {
+				instructions.add(new Jal("_system_exit"));
+			}
+			
 			symbolTable.endScope();
 			symbolTable.endScope();
 		}
@@ -105,7 +110,8 @@ public class MIPSTranslator {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
 		String reg = regAllocator.getRegister();
 		// FIXME: should probably be li instruction
-		instructions.add(new Ori(reg, "$zero", Integer.parseInt(quad.arg1)));
+		instructions.add(new Li(reg, Integer.parseInt(quad.arg1)));
+		//instructions.add(new Ori(reg, "$zero", Integer.parseInt(quad.arg1)));
 		return instructions;
 	}
 	private ArrayList<Instruction> translateCall(Quadruple quad) {

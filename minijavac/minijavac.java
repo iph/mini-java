@@ -19,8 +19,8 @@ public class minijavac {
 			System.exit(1);
 		}
 		try {
-			// Syntax check input file
-			MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileInputStream(args[0])));
+		// Syntax check input file
+		MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileInputStream(args[0])));
             // Store the root AST node from the parse
             Program program = (Program)parser.parse().value;
             if(parser.hasError){
