@@ -8,7 +8,7 @@ import minijavac.visitor.IRVisitor;
 public class IRBuilder implements IRVisitor {
 	private SymbolTable symbolTable;
 	private HashMap<String, ClassAttribute> classes;
-	private HashMap<String, MethodIR> ir;
+	private IR ir;
 	private MethodIR curMethodIR;
 	// FIXME: shouldn't need to keep track of this
 	private String curClass;
@@ -16,13 +16,13 @@ public class IRBuilder implements IRVisitor {
 	public IRBuilder(SymbolTable symTable) {
 		symbolTable = symTable;
 		storeClasses();
-		ir = new HashMap<String, MethodIR>();
+		ir = new IR();
 		curMethodIR = null;
 		curClass = "";
 	}
 
 	public IR getIR() {
-		return new IR(ir);
+		return ir;
 	}
 
 	public void storeClasses() {
@@ -73,12 +73,13 @@ public class IRBuilder implements IRVisitor {
 		method.getInMyScope(symbolTable);
 
 		// use fully-qualified method name for IR
-		MethodIR methodIR = new MethodIR(className + ".main", symbolTable);
+		MethodIR methodIR = new MethodIR(className, "main", symbolTable);
 		curMethodIR = methodIR;
 		// convert statement to IR
     	n.s.accept(this);
 
-    	//
+    	ir.addMethodIR(methodIR);
+    	
         System.out.println(curMethodIR);
 
     	symbolTable.endScope();
@@ -127,7 +128,7 @@ public class IRBuilder implements IRVisitor {
         method.getInMyScope(symbolTable);
 
         // use fully-qualified method name for IR
-		MethodIR methodIR = new MethodIR(curClass + "." + n.i.s, symbolTable);
+		MethodIR methodIR = new MethodIR(curClass, n.i.s, symbolTable);
 		curMethodIR = methodIR;
 		// convert each statement into IR
   		for (int i = 0; i < n.sl.size(); i++) {
@@ -141,6 +142,8 @@ public class IRBuilder implements IRVisitor {
 
 		// resolve all our labels to quads now
 		curMethodIR.backpatch();
+
+		ir.addMethodIR(methodIR);
 
 		System.out.println(curMethodIR);
 
@@ -231,7 +234,7 @@ public class IRBuilder implements IRVisitor {
 		ins.operator = "param";
 		ins.arg1 = n.e.accept(this);
 		curMethodIR.addQuad(ins);
-		ins = new Quadruple(InstructionType.PRINT);
+		ins = new Quadruple(InstructionType.CALL);
 		ins.operator = "call";
 		ins.arg1 = "System.out.println";
 		// System.out.println takes 1 param (an int)

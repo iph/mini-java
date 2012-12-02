@@ -1,5 +1,5 @@
-INPUT_FILE = tests/TreeVisitor.java
-OUTPUT_FILE = TreeVisitorIR.txt
+INPUT_FILE = tests/milestones/Milestone1.java
+OUTPUT_FILE = Milestone1.txt
 
 TEST_FILES = easy-test.java test.java BubbleSort.java \
 			 ir/Inheritance.java \
@@ -24,7 +24,7 @@ build_tools:
 	mv sym.java minijavac/tools/
 	jflex minijavac/tools/$(FLEX_FILE)
 build_class:
-	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac.java minijavac/ClassAttribute.java
+	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac.java minijavac/mips/MIPSCodeGenerator.java minijavac/ClassAttribute.java
 
 run:
 	$(RUN) $(INPUT_FILE)

@@ -5,7 +5,8 @@ import minijavac.SymbolTable;
 
 // TODO: should newLabel() be static or per-instance?
 public class MethodIR {
-	private String canonicalMethodName;
+	private String className;
+	private String methodName;
 	private SymbolTable symbolTable;
 	private ArrayList<Quadruple> ir;
 	private HashMap<String, Quadruple> labelLoc;
@@ -13,12 +14,25 @@ public class MethodIR {
 	private int lastTempId = 0;
 	private static int lastLabelId = 0;
 
-	public MethodIR(String methodName, SymbolTable symTable) {
-		canonicalMethodName = methodName;
+	public MethodIR(String clsName, String methName, SymbolTable symTable) {
+		className = clsName;
+		methodName = methName;
 		symbolTable = symTable;
 		ir = new ArrayList<Quadruple>();
 		labelLoc = new HashMap<String, Quadruple>();
 		unresolvedLabels = new HashMap<String, Integer>();
+	}
+
+	public String canonicalMethodName() {
+		return className + "." + methodName;
+	}
+
+	public String getClassName() {
+		return className;
+	}
+
+	public String getMethodName() {
+		return methodName;
 	}
 
 	public String nextTempVar() {
@@ -45,6 +59,7 @@ public class MethodIR {
 		unresolvedLabels.put(label, index);
 	}
 
+	// FIXME: rename this method... it's not really backpatching
 	public void backpatch() {
 		for (Map.Entry<String, Integer> entry : unresolvedLabels.entrySet()) {
 			String label = entry.getKey();
@@ -62,6 +77,10 @@ public class MethodIR {
 				System.err.println("Backpatching failed");
 			}
 		}
+
+		// TODO: make a final pass through the labels to find any
+		//       that point to the same quad. remove the 'duplicate'
+		//       and adjust instructions that reference it
 	}
 
 	public Quadruple getQuad(int index) {
@@ -80,7 +99,7 @@ public class MethodIR {
 
 	public String toString() {
 		// add the method's label
-		String repr = canonicalMethodName + ":\n";
+		String repr = canonicalMethodName() + ":\n";
 		// add the method's instructions
 		for (int i = 0; i < ir.size(); i++) {
 			// add instruction labels if it has them
@@ -108,5 +127,40 @@ public class MethodIR {
 
 	public int size() {
 		return ir.size();
+	}
+
+	public boolean hasLabel(Quadruple quad) {
+		// the first quad has a special label not stored in our hash
+		if (quad == getQuad(0)) {
+			return true;
+		}
+
+		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
+			if (quad == entry.getValue()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public ArrayList<ArrayList<Quadruple>> getBasicBlocks() {
+		ArrayList<ArrayList<Quadruple>> basicBlocks = new ArrayList<ArrayList<Quadruple>>();
+
+		boolean blockStarted = false;
+		ArrayList<Quadruple> basicBlock;
+		for (int i = 0; i < size(); i++) {
+			Quadruple curQuad = getQuad(i);
+			if (hasLabel(curQuad)) {
+				if (blockStarted) {
+
+				} else {
+
+				}
+				blockStarted = true;
+				basicBlock = new ArrayList<Quadruple>();
+			}
+		}
+
+		return basicBlocks;
 	}
 }

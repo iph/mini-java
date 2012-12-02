@@ -1,6 +1,6 @@
 package minijavac;
 
-class VariableAttribute extends Attribute {
+public class VariableAttribute extends Attribute {
 	private String type;
 	private int size; // this may only be relevant for arrays
 

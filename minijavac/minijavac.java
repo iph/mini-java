@@ -9,6 +9,7 @@ import java.io.*;
 import minijavac.visitor.*;
 import minijavac.syntaxtree.*;
 import minijavac.ir.IR;
+import minijavac.mips.*;
 
 public class minijavac {
 	public static void main(String[] args) {
@@ -42,7 +43,7 @@ public class minijavac {
             IR ir = irBuilder.getIR();
 
             // Generate the MIPS code!
-            CodeGenerator codeGen = new CodeGenerator(ir, symbolTable);
+            CodeGenerator codeGen = new MIPSCodeGenerator(ir, symbolTable);
             codeGen.generate();
 		} catch (IOException e) {
 			System.err.println("ERROR: Unable to open file: " + args[0]);

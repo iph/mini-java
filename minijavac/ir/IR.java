@@ -2,13 +2,29 @@ package minijavac.ir;
 import java.util.*;
 
 public class IR {
-	private HashMap<String, MethodIR> methodIR;
+	private ArrayList<MethodIR> methodIRList;
 
-	public IR(HashMap<String, MethodIR> mIR) {
-		methodIR = mIR;
+	public IR() {
+		methodIRList = new ArrayList<MethodIR>();
 	}
 
-	public MethodIR getMethod(String methodName) {
-		return methodIR.get(methodName);
+	public void addMethodIR(MethodIR ir) {
+		methodIRList.add(ir);
+	}
+
+	public MethodIR getMethodIR(int index) {
+		return methodIRList.get(index);
+	}
+
+	public MethodIR getMethodIR(String className, String methodName) {
+		for (MethodIR ir : methodIRList) {
+			if (ir.getClassName().equals(className) && ir.getMethodName().equals(methodName))
+				return ir;
+		}
+		return null;
+	}
+
+	public int size() {
+		return methodIRList.size();
 	}
 }

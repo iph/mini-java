@@ -2,7 +2,7 @@ package minijavac;
 
 import java.util.HashMap;
 
-class ClassAttribute extends Attribute {
+public class ClassAttribute extends Attribute {
 	private ClassAttribute parentClass;
     private String parentClassName;
 	private HashMap<String, VariableAttribute> variables;

@@ -1,6 +1,6 @@
 package minijavac;
 
-class TempVarAttribute extends Attribute {
+public class TempVarAttribute extends Attribute {
 	private String type;
 
 	public TempVarAttribute(String identifier, String t) {
