@@ -4,7 +4,7 @@ import java.util.*;
 import minijavac.SymbolTable;
 
 // TODO: should newLabel() be static or per-instance?
-public class MethodIR {
+public class MethodIR implements Iterable<Quadruple>{
 	private String className;
 	private String methodName;
 	private SymbolTable symbolTable;
@@ -51,6 +51,10 @@ public class MethodIR {
 		ir.add(quad);
 	}
 
+    public Iterator<Quadruple> iterator(){
+        return ir.iterator();
+    }
+
 	public void addLabel(String label, Quadruple quad) {
 		labelLoc.put(label, quad);
 	}
@@ -59,7 +63,30 @@ public class MethodIR {
 		unresolvedLabels.put(label, index);
 	}
 
-	// FIXME: rename this method... it's not really backpatching
+    public Quadruple getQuadFromLabel(String label){
+    	// the first quad has a special label not stored in our hash
+    	if (canonicalMethodName().equals(label)) {
+    		return getQuad(0);
+    	}
+
+        return labelLoc.get(label);
+    }
+
+	public boolean hasLabel(Quadruple quad) {
+		// the first quad has a special label not stored in our hash
+		if (quad == getQuad(0)) {
+			return true;
+		}
+
+		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
+			if (quad == entry.getValue()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+    // FIXME: rename this method... it's not really backpatching
 	public void backpatch() {
 		for (Map.Entry<String, Integer> entry : unresolvedLabels.entrySet()) {
 			String label = entry.getKey();
@@ -86,7 +113,7 @@ public class MethodIR {
 	public Quadruple getQuad(int index) {
 		return ir.get(index);
 	}
-	
+
 	public ArrayList<String> getLabels(Quadruple quad) {
 		ArrayList<String> labels = new ArrayList<String>();
 		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
@@ -129,23 +156,10 @@ public class MethodIR {
 		return ir.size();
 	}
 
-	public boolean hasLabel(Quadruple quad) {
-		// the first quad has a special label not stored in our hash
-		if (quad == getQuad(0)) {
-			return true;
-		}
-
-		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
-			if (quad == entry.getValue()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public ArrayList<ArrayList<Quadruple>> getBasicBlocks() {
 		ArrayList<ArrayList<Quadruple>> basicBlocks = new ArrayList<ArrayList<Quadruple>>();
 
+		/*
 		boolean blockStarted = false;
 		ArrayList<Quadruple> basicBlock;
 		for (int i = 0; i < size(); i++) {
@@ -161,6 +175,7 @@ public class MethodIR {
 			}
 		}
 
+		*/
 		return basicBlocks;
 	}
 }

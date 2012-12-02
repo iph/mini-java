@@ -1,0 +1,225 @@
+Iteration 1
+false is before liveIn
+Before: [c]
+true is after liveIn
+true is before liveOut
+Compare: []
+[]
+true is after liveOut
+true is before liveIn
+Before: [a]
+true is after liveIn
+true is before liveOut
+Compare: []
+[c]
+true is after liveOut
+true is before liveIn
+Before: [c, a]
+true is after liveIn
+true is before liveOut
+Compare: []
+[a]
+true is after liveOut
+true is before liveIn
+Before: [x]
+true is after liveIn
+true is before liveOut
+Compare: []
+[c, a]
+true is after liveOut
+true is before liveIn
+Before: [x]
+true is after liveIn
+true is before liveOut
+Compare: []
+[x]
+true is after liveOut
+true is before liveIn
+Before: []
+true is after liveIn
+true is before liveOut
+Compare: []
+[x]
+true is after liveOut
+{N2=[x], N6=[c], N3=[x], N4=[c, a], N5=[a], N1=[]}
+{N2=[x], N6=[], N3=[c, a], N4=[a], N5=[c], N1=[x]}
+Iteration 2
+false is before liveIn
+Before: [c]
+false is after liveIn
+false is before liveOut
+Compare: []
+[]
+false is after liveOut
+false is before liveIn
+Before: [a]
+true is after liveIn
+true is before liveOut
+Compare: [c]
+[c, x]
+true is after liveOut
+true is before liveIn
+Before: [c, a]
+true is after liveIn
+true is before liveOut
+Compare: [a]
+[c, a]
+true is after liveOut
+true is before liveIn
+Before: [x]
+true is after liveIn
+true is before liveOut
+Compare: [c, a]
+[c, a]
+true is after liveOut
+true is before liveIn
+Before: [x]
+true is after liveIn
+true is before liveOut
+Compare: [x]
+[c, a, x]
+true is after liveOut
+true is before liveIn
+Before: []
+true is after liveIn
+true is before liveOut
+Compare: [x]
+[x]
+true is after liveOut
+{N2=[x], N6=[c], N3=[c, a, x], N4=[c, a], N5=[c, a], N1=[]}
+{N2=[c, a, x], N6=[], N3=[c, a], N4=[c, a], N5=[c, x], N1=[x]}
+Iteration 3
+false is before liveIn
+Before: [c]
+false is after liveIn
+false is before liveOut
+Compare: []
+[]
+false is after liveOut
+false is before liveIn
+Before: [a]
+true is after liveIn
+true is before liveOut
+Compare: [c, x]
+[c, x]
+true is after liveOut
+true is before liveIn
+Before: [c, a]
+true is after liveIn
+true is before liveOut
+Compare: [c, a]
+[c, a, x]
+true is after liveOut
+true is before liveIn
+Before: [x]
+true is after liveIn
+true is before liveOut
+Compare: [c, a]
+[c, a]
+true is after liveOut
+true is before liveIn
+Before: [x]
+true is after liveIn
+true is before liveOut
+Compare: [c, a, x]
+[c, a, x]
+true is after liveOut
+true is before liveIn
+Before: []
+true is after liveIn
+true is before liveOut
+Compare: [x]
+[c, x]
+true is after liveOut
+{N2=[c, x], N6=[c], N3=[c, a, x], N4=[c, a], N5=[c, a, x], N1=[]}
+{N2=[c, a, x], N6=[], N3=[c, a], N4=[c, a, x], N5=[c, x], N1=[c, x]}
+Iteration 4
+false is before liveIn
+Before: [c]
+false is after liveIn
+false is before liveOut
+Compare: []
+[]
+false is after liveOut
+false is before liveIn
+Before: [a]
+false is after liveIn
+false is before liveOut
+Compare: [c, x]
+[c, x]
+false is after liveOut
+false is before liveIn
+Before: [c, a]
+true is after liveIn
+true is before liveOut
+Compare: [c, a, x]
+[c, a, x]
+true is after liveOut
+true is before liveIn
+Before: [x]
+true is after liveIn
+true is before liveOut
+Compare: [c, a]
+[c, a, x]
+true is after liveOut
+true is before liveIn
+Before: [x]
+true is after liveIn
+true is before liveOut
+Compare: [c, a, x]
+[c, a, x]
+true is after liveOut
+true is before liveIn
+Before: []
+true is after liveIn
+true is before liveOut
+Compare: [c, x]
+[c, x]
+true is after liveOut
+{N2=[c, x], N6=[c], N3=[c, a, x], N4=[c, a, x], N5=[c, a, x], N1=[c]}
+{N2=[c, a, x], N6=[], N3=[c, a, x], N4=[c, a, x], N5=[c, x], N1=[c, x]}
+Iteration 5
+false is before liveIn
+Before: [c]
+false is after liveIn
+false is before liveOut
+Compare: []
+[]
+false is after liveOut
+false is before liveIn
+Before: [a]
+false is after liveIn
+false is before liveOut
+Compare: [c, x]
+[c, x]
+false is after liveOut
+false is before liveIn
+Before: [c, a]
+false is after liveIn
+false is before liveOut
+Compare: [c, a, x]
+[c, a, x]
+false is after liveOut
+false is before liveIn
+Before: [x]
+false is after liveIn
+false is before liveOut
+Compare: [c, a, x]
+[c, a, x]
+false is after liveOut
+false is before liveIn
+Before: [x]
+false is after liveIn
+false is before liveOut
+Compare: [c, a, x]
+[c, a, x]
+false is after liveOut
+false is before liveIn
+Before: []
+false is after liveIn
+false is before liveOut
+Compare: [c, x]
+[c, x]
+false is after liveOut
+{N2=[c, x], N6=[c], N3=[c, a, x], N4=[c, a, x], N5=[c, a, x], N1=[c]}
+{N2=[c, a, x], N6=[], N3=[c, a, x], N4=[c, a, x], N5=[c, x], N1=[c, x]}
