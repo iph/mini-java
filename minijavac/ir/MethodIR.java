@@ -4,7 +4,7 @@ import java.util.*;
 import minijavac.SymbolTable;
 
 // TODO: should newLabel() be static or per-instance?
-public class MethodIR {
+public class MethodIR implements Iterable<Quadruple>{
 	private String canonicalMethodName;
 	private SymbolTable symbolTable;
 	private ArrayList<Quadruple> ir;
@@ -37,6 +37,10 @@ public class MethodIR {
 		ir.add(quad);
 	}
 
+    public Iterator<Quadruple> iterator(){
+        return ir.iterator();
+    }
+
 	public void addLabel(String label, Quadruple quad) {
 		labelLoc.put(label, quad);
 	}
@@ -44,6 +48,10 @@ public class MethodIR {
 	public void addFutureLabel(String label, int index) {
 		unresolvedLabels.put(label, index);
 	}
+
+    public Quadruple getQuadFromLabel(String label){
+        return labelLoc.get(label);
+    }
 
 	public void backpatch() {
 		for (Map.Entry<String, Integer> entry : unresolvedLabels.entrySet()) {
@@ -67,7 +75,7 @@ public class MethodIR {
 	public Quadruple getQuad(int index) {
 		return ir.get(index);
 	}
-	
+
 	public ArrayList<String> getLabels(Quadruple quad) {
 		ArrayList<String> labels = new ArrayList<String>();
 		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {

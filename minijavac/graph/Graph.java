@@ -18,6 +18,8 @@ public class Graph{
 
     public Node createNode(){
         Node n = new Node(this);
+        int size = nodes.size() + 1;
+        n.name = "N" + size;
         nodes.add(n);
         return n;
     }
@@ -39,8 +41,9 @@ public class Graph{
 }
 
 class Node{
-    Set<Node> predecessors;
-    Set<Node> successors;
+    public String name;
+    public Set<Node> predecessors;
+    public Set<Node> successors;
 
     public Node(Graph g){
         predecessors = new HashSet<Node>();
@@ -53,6 +56,10 @@ class Node{
 
     public int outDegree(){
         return successors.size();
+    }
+
+    public String toString(){
+        return name;
     }
 
     public int degree(){
