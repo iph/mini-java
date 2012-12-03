@@ -84,25 +84,38 @@ public class MIPSTranslator {
 
 	private ArrayList<Instruction> translateBinaryAssign(Quadruple quad) {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		String reg1 = regAllocator.getTempRegister();
-		String reg2 = regAllocator.getTempRegister();
+		String reg1 = "";
+		String reg2 = "";
+
+		if (isInt(quad.arg1)) {
+			reg1 = regAllocator.getTempRegister();
+			instructions.add(new Li(reg1, Integer.parseInt(quad.arg1)));
+		} else if (symbolTable.get(quad.arg1) instanceof VariableAttribute) {
+			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
+			reg1 = var.getRegister();
+		}
+
+		if (isInt(quad.arg2)) {
+			reg2 = regAllocator.getTempRegister();
+			instructions.add(new Li(reg2, Integer.parseInt(quad.arg2)));
+		} else if (symbolTable.get(quad.arg2) instanceof VariableAttribute) {
+			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg2);
+			reg2 = var.getRegister();
+		}
 		
-		instructions.add(new Li(reg1, Integer.parseInt(quad.arg1)));
-		instructions.add(new Li(reg2, Integer.parseInt(quad.arg2)));
-		
-		String reg3 = regAllocator.getTempRegister();
+		String resultReg = regAllocator.getTempRegister();
 		// use proper instructions based on operator
 		if (quad.operator.equals("+")) {
-			instructions.add(new Add(reg3, reg1, reg2));
+			instructions.add(new Add(resultReg, reg1, reg2));
 		} else if (quad.operator.equals("-")) {
-			instructions.add(new Sub(reg3, reg1, reg2));
+			instructions.add(new Sub(resultReg, reg1, reg2));
 		} else if (quad.operator.equals("*")) {
 			instructions.add(new Mult(reg1, reg2));
-			instructions.add(new Mflo(reg3));
+			instructions.add(new Mflo(resultReg));
 		}
 		// store the register loc of result in the symbol table
 		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
-		var.setRegister(reg3);
+		var.setRegister(resultReg);
 
 		return instructions;
 	}
