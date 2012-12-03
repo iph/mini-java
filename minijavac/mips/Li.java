@@ -1,11 +1,10 @@
 package minijavac.mips;
 
 public class Li extends Instruction{
-	String rd;
     int imm32;
 
-    public Li(String reg, int i){
-        rd = reg;
+    public Li(String rd, int i){
+        this.rd = rd;
         imm32 = i;
     }
 

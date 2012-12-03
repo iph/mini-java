@@ -5,6 +5,7 @@ import minijavac.SymbolTable;
 import minijavac.ir.*;
 import minijavac.ClassAttribute;
 import minijavac.MethodAttribute;
+import minijavac.VariableAttribute;
 
 public class MIPSTranslator {
 	private SymbolTable symbolTable;
@@ -38,7 +39,7 @@ public class MIPSTranslator {
 			if (methodIR.getMethodName().equals("main")) {
 				instructions.add(new Jal("_system_exit"));
 			}
-			
+
 			symbolTable.endScope();
 			symbolTable.endScope();
 		}
@@ -83,7 +84,26 @@ public class MIPSTranslator {
 
 	private ArrayList<Instruction> translateBinaryAssign(Quadruple quad) {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
+		String reg1 = regAllocator.getTempRegister();
+		String reg2 = regAllocator.getTempRegister();
+		
+		instructions.add(new Li(reg1, Integer.parseInt(quad.arg1)));
+		instructions.add(new Li(reg2, Integer.parseInt(quad.arg2)));
+		
+		String reg3 = regAllocator.getTempRegister();
+		// use proper instructions based on operator
+		if (quad.operator.equals("+")) {
+			instructions.add(new Add(reg3, reg1, reg2));
+		} else if (quad.operator.equals("-")) {
+			instructions.add(new Sub(reg3, reg1, reg2));
+		} else if (quad.operator.equals("*")) {
+			instructions.add(new Mult(reg1, reg2));
+			instructions.add(new Mflo(reg3));
+		}
+		// store the register loc of result in the symbol table
+		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
+		var.setRegister(reg3);
+
 		return instructions;
 	}
 	private ArrayList<Instruction> translateUnaryAssign(Quadruple quad) {
@@ -108,10 +128,15 @@ public class MIPSTranslator {
 	}
 	private ArrayList<Instruction> translateParam(Quadruple quad) {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		String reg = regAllocator.getRegister();
-		// FIXME: should probably be li instruction
-		instructions.add(new Li(reg, Integer.parseInt(quad.arg1)));
-		//instructions.add(new Ori(reg, "$zero", Integer.parseInt(quad.arg1)));
+		String paramReg = regAllocator.getParamRegister();
+		
+		if (isInt(quad.arg1)) {
+			instructions.add(new Li(paramReg, Integer.parseInt(quad.arg1)));
+		} else if (symbolTable.get(quad.arg1) instanceof VariableAttribute) {
+			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
+			instructions.add(new Move(paramReg, var.getRegister()));
+		}
+
 		return instructions;
 	}
 	private ArrayList<Instruction> translateCall(Quadruple quad) {
@@ -158,4 +183,13 @@ public class MIPSTranslator {
 		// TODO
 		return instructions;
 	}
+
+    private boolean isInt(String possibleInt){
+        try{
+            Integer.parseInt(possibleInt);
+            return true;
+        }catch(Exception e){
+            return false;
+        }
+    }
 }

@@ -9,9 +9,10 @@ public class IRBuilder implements IRVisitor {
 	private SymbolTable symbolTable;
 	private HashMap<String, ClassAttribute> classes;
 	private IR ir;
-	private MethodIR curMethodIR;
 	// FIXME: shouldn't need to keep track of this
 	private String curClass;
+	private MethodAttribute curMethod;
+	private MethodIR curMethodIR;
 
 	public IRBuilder(SymbolTable symTable) {
 		symbolTable = symTable;
@@ -36,6 +37,11 @@ public class IRBuilder implements IRVisitor {
 		}
 	}
 
+	private void addTemp(String identifier, String type) {
+		curMethod.addVariable(identifier, new VariableAttribute(identifier, type));
+		curMethod.getInMyScope(symbolTable);
+	}
+
 	public String getReturnType(String canonicalMethod) {
 		String className = canonicalMethod.split("\\.")[0];
 		String methodName = canonicalMethod.split("\\.")[1];
@@ -50,8 +56,6 @@ public class IRBuilder implements IRVisitor {
 		Attribute var = (Attribute)symbolTable.get(identifier);
 		if (var instanceof VariableAttribute) {
 			return ((VariableAttribute)var).getType();
-		} else if (var instanceof TempVarAttribute) {
-			return ((TempVarAttribute)var).getType();
 		}
 		return "";
 	}
@@ -71,6 +75,8 @@ public class IRBuilder implements IRVisitor {
         symbolTable.startScope();
 		MethodAttribute method = (MethodAttribute)symbolTable.get("main");
 		method.getInMyScope(symbolTable);
+		
+		curMethod = method;
 
 		// use fully-qualified method name for IR
 		MethodIR methodIR = new MethodIR(className, "main", symbolTable);
@@ -126,7 +132,9 @@ public class IRBuilder implements IRVisitor {
         symbolTable.startScope();
         MethodAttribute method = (MethodAttribute)symbolTable.get(n.i.s);
         method.getInMyScope(symbolTable);
-
+        
+        curMethod = method;
+        
         // use fully-qualified method name for IR
 		MethodIR methodIR = new MethodIR(curClass, n.i.s, symbolTable);
 		curMethodIR = methodIR;
@@ -266,7 +274,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "boolean"));
+		addTemp(ins.result, "boolean");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -277,7 +285,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "boolean"));
+		addTemp(ins.result, "boolean");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -288,7 +296,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		addTemp(ins.result, "int");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -299,7 +307,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		addTemp(ins.result, "int");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -310,7 +318,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		addTemp(ins.result, "int");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -321,7 +329,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = n.e1.accept(this);
 		ins.arg2 = n.e2.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		addTemp(ins.result, "int");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -331,7 +339,7 @@ public class IRBuilder implements IRVisitor {
 		ins.operator = "length";
 		ins.arg1 = n.e.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int"));
+		addTemp(ins.result, "int");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -363,7 +371,7 @@ public class IRBuilder implements IRVisitor {
 		ins.result = curMethodIR.nextTempVar();
 
 		String resultType = getReturnType(ins.arg1);
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, resultType));
+		addTemp(ins.result, resultType);
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -396,7 +404,7 @@ public class IRBuilder implements IRVisitor {
 		ins.arg1 = "int";
 		ins.arg2 = n.e.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "int array"));
+		addTemp(ins.result, "int array");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -406,7 +414,7 @@ public class IRBuilder implements IRVisitor {
 		ins.operator = "new";
 		ins.arg1 = n.i.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, ins.arg1));
+		addTemp(ins.result, ins.arg1);
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
@@ -416,7 +424,7 @@ public class IRBuilder implements IRVisitor {
 		ins.operator = "!";
 		ins.arg1 = n.e.accept(this);
 		ins.result = curMethodIR.nextTempVar();
-		symbolTable.put(ins.result, new TempVarAttribute(ins.result, "boolean"));
+		addTemp(ins.result, "boolean");
 		curMethodIR.addQuad(ins);
 		return ins.result;
 	}
