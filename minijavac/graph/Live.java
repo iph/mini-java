@@ -72,7 +72,7 @@ public class Live{
                     //TODO: Put blockers on the $t0-$t9 entries.
                     break;
                 case RETURN:
-                    //TODO: Block the return registers.
+                    // Block the return registers.
                     n = instructionMap.get(quad);
                     use.add(quad.arg1);
                     break;
@@ -141,6 +141,24 @@ public class Live{
         }
     }
 
+    public ArrayList<Set<String>> allLiveNodes(){
+        ArrayList<Set<String>> lives = new ArrayList<Set<String>>();
+       for(Set<String> set: liveIn.values()){
+           lives.add(set);
+       }
+
+       for(Set<String> set: liveOut.values()){
+           lives.add(set);
+       }
+
+       return lives;
+    }
+    /* Updates any node that is equal to check to the Node to.
+     *
+     * Takes a node and will update the corresponding node that is passed in.
+     * check: The node we are looking for.
+     *
+     */
     private void updateCoalesce(Node check, Node to){
         for(Map.Entry<Quadruple, Node> entry: instructionMap.entrySet()){
             if(entry.getValue() == check){
@@ -160,7 +178,7 @@ public class Live{
             dfs.push(last);
             Set<Node> seen = new HashSet<Node>();
             while(dfs.size() > 0){
-                Set<String> out, in, def, use, temp, result;
+                Set<String> temp, result;
                 Node current = dfs.pop();
                 // Populate dfs.
                 for(Node pred: current.predecessors){
@@ -173,15 +191,12 @@ public class Live{
                 temp = (Set)((HashSet)liveOut.get(current)).clone();
                 difference(temp, defs.get(current));
                 result = (Set)((HashSet)uses.get(current)).clone();
-                System.out.println(hasChanged + " is before liveIn");
-                System.out.println("Before: " + result);
                 union(result, temp);
                 if(result.size() == 0 && liveIn.get(current).size() == 0){
                 }
                 else{
                     hasChanged |= !result.equals(liveIn.get(current));
                 }
-                System.out.println(hasChanged + " is after liveIn");
                 liveIn.put(current, result);
 
                 //Updating live out.
@@ -189,15 +204,12 @@ public class Live{
                 for(Node s: current.successors){
                     union(result, liveIn.get(s));
                 }
-                System.out.println(hasChanged + " is before liveOut");
-                System.out.println("Compare: " + liveOut.get(current) + "\n" + result);
                 if(result.size() == 0 && liveOut.get(current).size() == 0){
                 }
                 else{
                     hasChanged |= !result.equals(liveOut.get(current));
                 }
 
-                System.out.println(hasChanged + " is after liveOut");
                 liveOut.put(current, result);
             }
             System.out.println(liveIn);
@@ -217,7 +229,6 @@ public class Live{
     }
 
     public String toStringBlock(){
-        StringBuilder s = new StringBuilder();
         ArrayList<Quadruple> block = new ArrayList<Quadruple>();
         Node previousNode = null;
         for(Quadruple quad: method){
@@ -243,7 +254,19 @@ public class Live{
             block.add(quad);
             previousNode = currentNode;
         }
-       return "";
+        System.out.print("====Block Stats {");
+        System.out.println(" I am node: " + previousNode);
+        System.out.println(" I connect to: " + previousNode.successors);
+        System.out.println(" I am connected to: " + previousNode.predecessors);
+        System.out.print("Use:" + uses.get(previousNode));
+        System.out.print(", Def:" + defs.get(previousNode));
+        System.out.println("}=====");
+
+        for(Quadruple q: block){
+            System.out.println(q);
+        }
+        System.out.println("===========\n");
+        return "";
     }
 
 

@@ -1,6 +1,5 @@
 package minijavac.graph;
 import minijavac.ir.*;
-import minijavac.graph.*;
 
 public class TestGraph{
 
@@ -61,9 +60,10 @@ public class TestGraph{
         method.addLabel("L2", quads[5]);
 
         Live l = new Live(method);
-        l.coalesce();
+ //       l.coalesce();
         l.computeLiveness();
-        System.out.println(l.toStringBlock());
+        InterferenceGraph ig = new InterferenceGraph(l);
+        System.out.println(ig);
 
 
     }
