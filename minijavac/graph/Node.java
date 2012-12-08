@@ -38,6 +38,13 @@ public class Node{
     public boolean adjacent(Node n){
         return goesTo(n) || comesFrom(n);
     }
+
+    public Set<Node> adjacentNodes(){
+        Set<Node> all = new HashSet<Node>();
+        all.addAll(predecessors);
+        all.addAll(successors);
+        return all;
+    }
 }
 
 

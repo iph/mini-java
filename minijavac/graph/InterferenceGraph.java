@@ -48,6 +48,11 @@ public class InterferenceGraph extends Graph{
      */
     private void addInterferenceEdges(Set<String> set){
         for(String a: set){
+            if(!vars.containsKey(a)){
+                createNode(a);
+            }
+        }
+        for(String a: set){
             for(String b: set){
                 if(!a.equals(b)){
                     addEdge(a, b);
@@ -57,6 +62,11 @@ public class InterferenceGraph extends Graph{
     }
     /* Same as addInterferenceEdges except deals with a move variable. */
     private void addInterferenceMove(Set<String> set, String move, String moveTo){
+        for(String a: set){
+            if(!vars.containsKey(a)){
+                createNode(a);
+            }
+        }
         if(!vars.containsKey(move)){
             Node n = createNode();
             put(move, n);
@@ -74,7 +84,6 @@ public class InterferenceGraph extends Graph{
             for(String b: set){
                 if(!a.equals(b)){
                     if(!((a.equals(move) && b.equals(moveTo)) || (a.equals(moveTo) && b.equals(move)))){
-                        System.out.println("Adding edge.. " + a + ", " + b);
                         addEdge(a, b);
                     }
                 }
@@ -82,27 +91,16 @@ public class InterferenceGraph extends Graph{
         }
 
     }
-    public Node createNode(){
+    public void createNode(String var){
         Node n = super.createNode();
-        System.out.println("Making move");
         moves.put(n, new HashSet<String>());
-        return n;
+        put(var, n);
     }
     /* Adds two variable strings to the interference graph. */
     public void addEdge(String a, String b){
         Node aNode, bNode;
-        if(!vars.containsKey(a)){
-            aNode = createNode();
-            put(a, aNode);
-        }else{
-            aNode = vars.get(a);
-        }
-        if(!vars.containsKey(b)){
-            bNode = createNode();
-            put(b, bNode);
-        }else{
-            bNode = vars.get(b);
-        }
+        aNode = vars.get(a);
+        bNode = vars.get(b);
         addEdge(aNode, bNode);
     }
 
@@ -111,6 +109,9 @@ public class InterferenceGraph extends Graph{
         removeEdge(vars.get(b), vars.get(a));
     }
 
+    public Set<String> vars(){
+        return vars.keySet();
+    }
     public Set<String> adjacent(String a){
         Set<String> temp = new HashSet<String>();
         for(Node n: adjacent(vars.get(a))){

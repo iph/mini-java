@@ -71,11 +71,11 @@ public class TestGraph{
         method.addLabel("L1", quads[1]);
         method.addLabel("L2", quads[5]);
 
-        Live l = new Live(method);
- //       l.coalesce();
-        l.computeLiveness();
-        InterferenceGraph ig = new InterferenceGraph(l);
-        System.out.println(ig);
+        RegisterAllocator reg = new RegisterAllocator(method);
+        reg.color();
+        for(Quadruple quad: method){
+            System.out.println(quad.toString());
+        }
 
 
     }
