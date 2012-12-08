@@ -5,12 +5,14 @@ public class Live{
     Graph graph;
     MethodIR method;
     Map<Quadruple, Node> instructionMap;
+    Map<Node, Quadruple> reverseInstructionMap;
     Map<Node, Set<String>> uses, defs, liveIn, liveOut;
 
     public Live(MethodIR meth){
         graph = new Graph();
         method = meth;
         instructionMap = new HashMap<Quadruple, Node>();
+        reverseInstructionMap = new HashMap<Node, Quadruple>();
         uses = new HashMap<Node, Set<String>>();
         defs = new HashMap<Node, Set<String>>();
         liveIn = new HashMap<Node, Set<String>>();
@@ -20,6 +22,7 @@ public class Live{
         for(Quadruple quad: method){
             Node n = graph.createNode();
             instructionMap.put(quad, n);
+            reverseInstructionMap.put(n, quad);
             uses.put(n, new HashSet<String>());
             defs.put(n, new HashSet<String>());
             liveIn.put(n, new HashSet<String>());
@@ -105,7 +108,8 @@ public class Live{
         }
     }
 
-    public void coalesce(){
+    /* Do not use this function */
+    private void coalesce(){
         for(Quadruple quad: method){
             Node n = instructionMap.get(quad);
             if(n.outDegree() == 1){
@@ -140,6 +144,25 @@ public class Live{
             }
         }
     }
+    public ArrayList<Node> nodes(){
+        ArrayList<Node> n = new ArrayList<Node>();
+
+        for(Node t: instructionMap.values()){
+            n.add(t);
+        }
+        return n;
+    }
+
+    public Quadruple getInstruction(Node n){
+        return reverseInstructionMap.get(n);
+    }
+    public Set<String> liveIn(Node n){
+        return liveIn.get(n);
+    }
+
+    public Set<String> liveOut(Node n){
+        return liveOut.get(n);
+    }
 
     public ArrayList<Set<String>> allLiveNodes(){
         ArrayList<Set<String>> lives = new ArrayList<Set<String>>();
@@ -172,7 +195,6 @@ public class Live{
         boolean hasChanged = false;
         do{
             hasChanged = false;
-            System.out.println("Iteration " + i);
             Node last = instructionMap.get(method.getQuad(method.size()-1));
             Stack<Node> dfs = new Stack<Node>();
             dfs.push(last);
@@ -212,12 +234,6 @@ public class Live{
 
                 liveOut.put(current, result);
             }
-            System.out.println(liveIn);
-            System.out.println(liveOut);
-            if(i == 10){
-                break;
-            }
-            i++;
         }while(hasChanged);
     }
 
@@ -226,6 +242,37 @@ public class Live{
     }
     public boolean difference(Set<String> set1, Set<String> set2){
         return set1.removeAll(set2);
+    }
+    public String toString(){
+        StringBuilder str = new StringBuilder();
+        for(Quadruple quad: method){
+            str.append("*-----------------------*\n");
+            str.append("|  ins" + String.format("%17s", quad.toString()) + " |\n");
+            str.append("*-----------------------*\n");
+            str.append("|      in    |   out    |\n");
+            str.append("*-----------------------*\n");
+            Node n = instructionMap.get(quad);
+            Iterator<String> in = liveIn.get(n).iterator();
+            Iterator<String> out = liveOut.get(n).iterator();
+            while(in.hasNext() || out.hasNext()){
+                String inStr, outStr;
+                if(in.hasNext()){
+                    inStr = String.format("%8s", in.next());
+                }else{
+                    inStr = "        ";
+                }
+                if(out.hasNext()){
+                    outStr = String.format("%8s", out.next());
+                }else{
+                    outStr = "        ";
+                }
+                str.append("| " + inStr + "   | " + outStr + " |\n");
+
+            }
+            str.append("*-----------------------*\n");
+            str.append("\n");
+        }
+        return str.toString();
     }
 
     public String toStringBlock(){

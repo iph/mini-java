@@ -25,9 +25,14 @@ build_tools:
 	jflex minijavac/tools/$(FLEX_FILE)
 build_class:
 	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac.java minijavac/ClassAttribute.java minijavac/graph/*.java
+build_graph:
+	javac minijavac/graph/*.java
 
 run:
 	$(RUN) $(INPUT_FILE)
+
+run_graph:
+	java minijavac.graph.TestGraph
 
 test:            
 	javac minijavac/TestSuite.java
@@ -40,4 +45,4 @@ save:
 	java -classpath `pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac $(INPUT_FILE) > $(OUTPUT_FILE)
 
 clean:
-	rm minijavac/*.class  minijavac/tools/*.class minijavac/syntaxtree/*.class minijavac/visitor/*.class minijavac/ir/*.class
+	rm minijavac/*.class  minijavac/tools/*.class minijavac/syntaxtree/*.class minijavac/visitor/*.class minijavac/ir/*.class minijavac/graph/*.class

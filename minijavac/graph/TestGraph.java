@@ -5,7 +5,7 @@ public class TestGraph{
 
     public static void main(String[] args){
         MethodIR method = new MethodIR("herp", null);
-        Quadruple[] quads = new Quadruple[10];
+        Quadruple[] quads = new Quadruple[11];
         quads[0] = new Quadruple(InstructionType.UNARY_ASSIGN);
         quads[0].result = "x";
         quads[0].arg1 = "0";
@@ -49,10 +49,22 @@ public class TestGraph{
         quads[7].arg1 = "L1";
         quads[7].arg2 = "b";
 
-        quads[8] = new Quadruple(InstructionType.RETURN);
-        quads[8].arg1 = "c";
+        quads[8] = new Quadruple(InstructionType.COPY);
+        quads[8].result = "d";
+        quads[8].arg1 = "x";
+        quads[8].operator = "";
 
-        for(int i = 0; i < 9; i++){
+        quads[9] = new Quadruple(InstructionType.BINARY_ASSIGN);
+        quads[9].result = "c";
+        quads[9].arg1 = "d";
+        quads[9].arg2 = "2";
+        quads[9].operator = "+";
+
+
+        quads[10] = new Quadruple(InstructionType.RETURN);
+        quads[10].arg1 = "c";
+
+        for(int i = 0; i < 11; i++){
             method.addQuad(quads[i]);
         }
 

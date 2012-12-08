@@ -1,9 +1,11 @@
 package minijavac.graph;
 import java.util.*;
+import minijavac.ir.*;
 
 public class InterferenceGraph extends Graph{
     private Map<String, Node> vars;
     private Map<Node, String> inverseVars;
+    private Map<Node, Set<String>> moves;
 
     /* Will create an empty Graph.
      *
@@ -15,28 +17,76 @@ public class InterferenceGraph extends Graph{
         super();
         vars = new HashMap<String, Node>();
         inverseVars = new HashMap<Node, String>();
+        moves = new HashMap<Node, Set<String>>();
     }
 
     /* Takes a liveness analysis and builds the interference graph.
      *
-     * TODO: Figure out a way to add precolored nodes for params.
-     * TODO: Add an IRMethod to the call, so we can check for calls
-     *       and properly interfere
      *
      * */
     public InterferenceGraph(Live l){
         super();
+        System.out.println(l);
         vars = new HashMap<String, Node>();
         inverseVars = new HashMap<Node, String>();
-        for(Set<String> set: l.allLiveNodes()){
-            for(String a: set){
-                for(String b: set){
-                    if(!a.equals(b)){
+        moves = new HashMap<Node, Set<String>>();
+        for(Node n: l.nodes()){
+            addInterferenceEdges(l.liveIn(n));
+            Quadruple ins = l.getInstruction(n);
+            if(ins.getType() == InstructionType.COPY){
+                addInterferenceMove(l.liveOut(n), ins.arg1, ins.result);
+            }else{
+                addInterferenceEdges(l.liveOut(n));
+            }
+        }
+    }
+
+    /* Uses the liveness set to create interference edges.
+     *
+     * Takes a set of live string variables.
+     * Mutates the graph by adding nodes and edges to it.
+     */
+    private void addInterferenceEdges(Set<String> set){
+        for(String a: set){
+            for(String b: set){
+                if(!a.equals(b)){
+                    addEdge(a, b);
+                }
+            }
+        }
+    }
+    /* Same as addInterferenceEdges except deals with a move variable. */
+    private void addInterferenceMove(Set<String> set, String move, String moveTo){
+        if(!vars.containsKey(move)){
+            Node n = createNode();
+            put(move, n);
+        }
+        if(!vars.containsKey(moveTo)){
+            Node n = createNode();
+            put(moveTo, n);
+        }
+        Set<String> moveSet = moves.get(vars.get(moveTo));
+        moveSet.add(move);
+        moveSet = moves.get(vars.get(move));
+        moveSet.add(moveTo);
+
+        for(String a: set){
+            for(String b: set){
+                if(!a.equals(b)){
+                    if(!((a.equals(move) && b.equals(moveTo)) || (a.equals(moveTo) && b.equals(move)))){
+                        System.out.println("Adding edge.. " + a + ", " + b);
                         addEdge(a, b);
-                   }
-               }
-           }
-       }
+                    }
+                }
+            }
+        }
+
+    }
+    public Node createNode(){
+        Node n = super.createNode();
+        System.out.println("Making move");
+        moves.put(n, new HashSet<String>());
+        return n;
     }
     /* Adds two variable strings to the interference graph. */
     public void addEdge(String a, String b){
@@ -86,11 +136,22 @@ public class InterferenceGraph extends Graph{
             }
 
             str.append("*-----------*\n");
+            str.append("|~interfere~|\n");
             for(String other: adjacent(var)){
                 str.append("| " + String.format("%9s", other) + " |\n");
             }
             str.append("*-----------*\n");
+            if(moves.get(vars.get(var)).size() == 0){
+                continue;
+            }
+            str.append("|  ~moves~  |\n");
+            System.out.println(var);
+            for(String other: moves.get(vars.get(var)) ){
+                str.append("| " + String.format("%9s", other) + " |\n");
+            }
+            str.append("*-----------*\n");
         }
+
         return str.toString();
     }
 }
