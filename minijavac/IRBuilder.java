@@ -377,25 +377,53 @@ public class IRBuilder implements IRVisitor {
 	}
 
 	public String visit(IntegerLiteral n) {
-		return ""+n.i;
+		Quadruple ins = new Quadruple(InstructionType.COPY);
+		ins.operator = ":=";
+		ins.arg1 = ""+n.i;
+		ins.result = curMethodIR.nextTempVar();
+		addTemp(ins.result, "int");
+		curMethodIR.addQuad(ins);
+		return ins.result;
 	}
 
 	public String visit(True n) {
-		//return ""+(-1);
-		return "true";
+		Quadruple ins = new Quadruple(InstructionType.COPY);
+		ins.operator = ":=";
+		ins.arg1 = "true";
+		ins.result = curMethodIR.nextTempVar();
+		addTemp(ins.result, "boolean");
+		curMethodIR.addQuad(ins);
+		return ins.result;
 	}
 
 	public String visit(False n) {
-		//return ""+0;
-		return "false";
+		Quadruple ins = new Quadruple(InstructionType.COPY);
+		ins.operator = ":=";
+		ins.arg1 = "false";
+		ins.result = curMethodIR.nextTempVar();
+		addTemp(ins.result, "boolean");
+		curMethodIR.addQuad(ins);
+		return ins.result;
 	}
 
 	public String visit(IdentifierExp n) {
-		return n.s;
+		Quadruple ins = new Quadruple(InstructionType.COPY);
+		ins.operator = ":=";
+		ins.arg1 = n.s;
+		ins.result = curMethodIR.nextTempVar();
+		addTemp(ins.result, getVarType(n.s));
+		curMethodIR.addQuad(ins);
+		return ins.result;
 	}
 
 	public String visit(This n) {
-		return "this";
+		Quadruple ins = new Quadruple(InstructionType.COPY);
+		ins.operator = ":=";
+		ins.arg1 = "this";
+		ins.result = curMethodIR.nextTempVar();
+		addTemp(ins.result, getVarType("this"));
+		curMethodIR.addQuad(ins);
+		return ins.result;
 	}
 
 	public String visit(NewArray n) {

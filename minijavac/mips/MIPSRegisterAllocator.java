@@ -1,5 +1,6 @@
 package minijavac.mips;
 
+import java.util.*;
 import minijavac.*;
 import minijavac.ir.*;
 import minijavac.graph.*;
