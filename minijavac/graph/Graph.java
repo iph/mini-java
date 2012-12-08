@@ -38,45 +38,12 @@ public class Graph{
         to.predecessors.remove(from);
     }
 
+    public Set<Node> adjacent(Node a){
+        Set<Node> temp = new HashSet<Node>();
+        temp.addAll(a.successors);
+        temp.addAll(a.predecessors);
+        return temp;
+    }
+
 }
-
-class Node{
-    public String name;
-    public Set<Node> predecessors;
-    public Set<Node> successors;
-
-    public Node(Graph g){
-        predecessors = new HashSet<Node>();
-        successors = new HashSet<Node>();
-    }
-
-    public int inDegree(){
-        return predecessors.size();
-    }
-
-    public int outDegree(){
-        return successors.size();
-    }
-
-    public String toString(){
-        return name;
-    }
-
-    public int degree(){
-        return inDegree() + outDegree();
-    }
-
-    public boolean goesTo(Node n){
-        return this.successors.contains(n);
-    }
-
-    public boolean comesFrom(Node n){
-        return this.predecessors.contains(n);
-    }
-
-    public boolean adjacent(Node n){
-        return goesTo(n) || comesFrom(n);
-    }
-}
-
 

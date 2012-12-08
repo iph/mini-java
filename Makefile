@@ -26,8 +26,14 @@ build_tools:
 build_class:
 	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/*.java minijavac/graph/*.java minijavac/ir/*.java minijavac/mips/*.java minijavac/mips/instructions/*.java
 
+build_graph:
+	javac minijavac/graph/*.java
+
 run:
 	$(RUN) $(INPUT_FILE)
+
+run_graph:
+	java minijavac.graph.TestGraph
 
 test:            
 	javac minijavac/TestSuite.java
