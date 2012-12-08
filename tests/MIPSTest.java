@@ -20,14 +20,18 @@ class Object {
     }
 }
 
-// FIXME: when the class var is d, it thinks
-//        it inherited it from Object... is that
-//        right? :/
+// FIXME: when the class var is d, it not only thinks
+//        it inherited it from Object, it thinks it
+//        has access to it. is that right? :/
+// EDIT:  I fixed this by changing how getInMyScope works so
+//        that only methods of parent classes are added.
+//        Is that the desired behavior, or are we actually
+//        supposed to inherit variables publicly?
 class Subclass extends Object {
-    int e;
+    int d;
 
     public int DiffMethod(int x, int y) {
-        e = 1;
+        d = 1;
         return 0;
     }
 }

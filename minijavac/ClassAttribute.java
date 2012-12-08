@@ -118,6 +118,15 @@ public class ClassAttribute extends Attribute {
 		return parentClass.getClassDefiningMethod(methodName);
 	}
 
+	private void getInMyInheritanceScope(SymbolTable table) {
+        for(String id: methods.keySet()){
+            table.put(id, methods.get(id));
+        }
+        if(parentClass != null){
+            parentClass.getInMyInheritanceScope(table);
+        }
+	}
+
     public void getInMyScope(SymbolTable table){
         for(String id: variables.keySet()){
             table.put(id, variables.get(id));
@@ -126,7 +135,7 @@ public class ClassAttribute extends Attribute {
             table.put(id, methods.get(id));
         }
         if(parentClass != null){
-            parentClass.getInMyScope(table);
+            parentClass.getInMyInheritanceScope(table);
         }
     }
 
