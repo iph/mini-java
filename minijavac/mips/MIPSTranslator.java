@@ -11,7 +11,7 @@ public class MIPSTranslator {
 	private ClassAttribute curClass;
 	private MethodAttribute curMethod;
 	private HashMap<String, ClassAttribute> classes;
-	
+
 	public MIPSTranslator(SymbolTable symTable, MIPSRegisterAllocator regAlloc, MIPSFrameAllocator frameAlloc) {
 		symbolTable = symTable;
 		registerAllocator = regAlloc;
@@ -104,6 +104,10 @@ public class MIPSTranslator {
 			return translateNewArray(quad);
 		case LENGTH:
 			return translateLength(quad);
+		case LOAD:
+			return translateLoad(quad);
+		case STORE:
+			return translateStore(quad);
 		}
 
 		return new ArrayList<Instruction>();

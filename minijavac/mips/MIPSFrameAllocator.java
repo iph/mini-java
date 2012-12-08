@@ -10,11 +10,15 @@ public class MIPSFrameAllocator {
 		frames = new HashMap<String, MIPSFrame>();
 	}
 
-	public int allocate(String method, int bytes) {
-		MIPSFrame frame = frames.get(method);
+	public int allocate(String klass, String method, int bytes) {
+		return allocate(klass + "." + method, bytes);
+	}
+
+	public int allocate(String canonMethod, int bytes) {
+		MIPSFrame frame = frames.get(canonMethod);
 		if (frame == null) {
-			frame = new MIPSFrame(method);
-			frames.put(method, frame);
+			frame = new MIPSFrame(canonMethod);
+			frames.put(canonMethod, frame);
 		}
 
 		int offset = frame.getSize();
@@ -22,6 +26,14 @@ public class MIPSFrameAllocator {
 		frame.setSize(offset + bytes);
 
 		return offset;
+	}
+
+	public MIPSFrame getFrame(String klass, String method) {
+		return getFrame(klass + "." + method);
+	}
+
+	public MIPSFrame getFrame(String canonMethod) {
+		return frames.get(canonMethod);
 	}
 
 	public HashMap<String, MIPSFrame> getFrames() {
