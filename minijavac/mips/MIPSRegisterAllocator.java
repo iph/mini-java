@@ -5,9 +5,11 @@ import minijavac.ir.*;
 
 public class MIPSRegisterAllocator {
 	private SymbolTable symbolTable;
+	private MIPSFrameAllocator frameAllocator;
 	
-	public MIPSRegisterAllocator(SymbolTable symTable) {
+	public MIPSRegisterAllocator(SymbolTable symTable, MIPSFrameAllocator frameAlloc) {
 		symbolTable = symTable;
+		frameAllocator = frameAllocator;
 	}
 
 	public void allocate(IR ir) {

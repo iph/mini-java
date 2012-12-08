@@ -1,23 +1,30 @@
 package minijavac.mips;
 
+import java.util.*;
+
 public class MIPSFrameAllocator {
 	private int size;
+	private HashMap<String, MIPSFrame> frames;
 
 	public MIPSFrameAllocator() {
-		size = 0;
+		frames = new HashMap<String, MIPSFrame>();
 	}
 
-	public int allocate(int bytes) {
-		// 4 bytes are necessary to store $fp
-		// at beginning
-		int offset = 4 + size;
+	public int allocate(String method, int bytes) {
+		MIPSFrame frame = frames.get(method);
+		if (frame == null) {
+			frame = new MIPSFrame(method);
+			frames.put(method, frame);
+		}
 
-		size += bytes;
+		int offset = frame.getSize();
+
+		frame.setSize(offset + bytes);
 
 		return offset;
 	}
 
-	public int getSize() {
-		return size;
+	public HashMap<String, MIPSFrame> getFrames() {
+		return frames;
 	}
 }

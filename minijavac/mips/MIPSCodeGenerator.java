@@ -8,13 +8,15 @@ import minijavac.*;
 public class MIPSCodeGenerator extends CodeGenerator {
 	private MIPSObjectTransformer objectTransformer;
 	private MIPSRegisterAllocator registerAllocator;
+	private MIPSFrameAllocator frameAllocator;
 	private MIPSTranslator translator;
 
 	public MIPSCodeGenerator(IR ir, SymbolTable symbolTable) {
 		super(ir, symbolTable);
 		objectTransformer = new MIPSObjectTransformer(symbolTable);
-		registerAllocator = new MIPSRegisterAllocator(symbolTable);
-		translator = new MIPSTranslator(symbolTable, registerAllocator);
+		frameAllocator = new MIPSFrameAllocator();
+		registerAllocator = new MIPSRegisterAllocator(symbolTable, frameAllocator);
+		translator = new MIPSTranslator(symbolTable, registerAllocator, frameAllocator);
 	}
 
 	public Assembly generate() {

@@ -7,12 +7,16 @@ import minijavac.*;
 public class MIPSTranslator {
 	private SymbolTable symbolTable;
 	private MIPSRegisterAllocator registerAllocator;
-	private HashMap<String, ClassAttribute> classes;
+	private MIPSFrameAllocator frameAllocator;
+	private ClassAttribute curClass;
 	private MethodAttribute curMethod;
-
-	public MIPSTranslator(SymbolTable symTable, MIPSRegisterAllocator regAlloc) {
+	private HashMap<String, ClassAttribute> classes;
+	
+	public MIPSTranslator(SymbolTable symTable, MIPSRegisterAllocator regAlloc, MIPSFrameAllocator frameAlloc) {
 		symbolTable = symTable;
 		registerAllocator = regAlloc;
+		frameAllocator = frameAlloc;
+		curClass = null;
 		curMethod = null;
 		storeClasses();
 	}
