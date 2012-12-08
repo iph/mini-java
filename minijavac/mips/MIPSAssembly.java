@@ -15,7 +15,7 @@ public class MIPSAssembly extends Assembly {
 	}
 
 	private String getRuntimeLibrary() {
-		StringBuffer library = new StringBuffer();
+		StringBuilder library = new StringBuilder();
 		try {
 			FileInputStream in = new FileInputStream("minijavac/mips/library.asm");
 			Scanner scanner = new Scanner(in);

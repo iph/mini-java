@@ -14,4 +14,8 @@ public class MIPSRegisterAllocator {
 
 	public void allocate(IR ir) {
 	}
+
+	public String getReservedRegister() {
+		return "$t0";
+	}
 }

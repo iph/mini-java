@@ -24,7 +24,7 @@ build_tools:
 	mv sym.java minijavac/tools/
 	jflex minijavac/tools/$(FLEX_FILE)
 build_class:
-	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/*.java minijavac/graph/*.java minijavac/ir/*.java minijavac/mips/*.java
+	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/*.java minijavac/graph/*.java minijavac/ir/*.java minijavac/mips/*.java minijavac/mips/instructions/*.java
 
 run:
 	$(RUN) $(INPUT_FILE)
@@ -40,4 +40,4 @@ save:
 	java -classpath `pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac $(INPUT_FILE) > $(OUTPUT_FILE)
 
 clean:
-	rm minijavac/*.class  minijavac/tools/*.class minijavac/syntaxtree/*.class minijavac/visitor/*.class minijavac/ir/*.class minijavac/graph/*.class minijavac/mips/*.class
+	rm minijavac/*.class  minijavac/tools/*.class minijavac/syntaxtree/*.class minijavac/visitor/*.class minijavac/ir/*.class minijavac/graph/*.class minijavac/mips/*.class minijavac/mips/instructions/*.class

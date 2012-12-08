@@ -2,6 +2,7 @@ package minijavac.mips;
 
 import java.util.*;
 import minijavac.ir.*;
+import minijavac.mips.instructions.*;
 import minijavac.*;
 
 public class MIPSTranslator {
@@ -11,6 +12,7 @@ public class MIPSTranslator {
 	private ClassAttribute curClass;
 	private MethodAttribute curMethod;
 	private HashMap<String, ClassAttribute> classes;
+	private Assembly assembly;
 
 	public MIPSTranslator(SymbolTable symTable, MIPSRegisterAllocator regAlloc, MIPSFrameAllocator frameAlloc) {
 		symbolTable = symTable;
@@ -19,9 +21,10 @@ public class MIPSTranslator {
 		curClass = null;
 		curMethod = null;
 		storeClasses();
+		assembly = null;
 	}
 
-	public void storeClasses() {
+	private void storeClasses() {
 		classes = new HashMap<String, ClassAttribute>();
 		HashMap<String, LinkedList<Object>> environment = symbolTable.getEnvironment();
 		for (Map.Entry<String, LinkedList<Object>> entry : environment.entrySet()) {
@@ -42,7 +45,7 @@ public class MIPSTranslator {
 	}
 
 	public Assembly translate(IR ir) {
-		Assembly assembly = new MIPSAssembly();
+		assembly = new MIPSAssembly();
 
 		for (int i = 0; i < ir.size(); i++) {
 			MethodIR methodIR = ir.getMethodIR(i);
@@ -55,16 +58,34 @@ public class MIPSTranslator {
 			MethodAttribute method = klass.getMethod(methodIR.getMethodName());
 			method.getInMyScope(symbolTable);
 
+			curClass = klass;
 			curMethod = method;
 
-			for (int j = 0; j < methodIR.size(); j++) {
-				Quadruple quad = methodIR.getQuad(j);
-				assembly.addInstructions(translateQuad(quad));
-			}
+			boolean inMain = curMethod.getIdentifier().equals("main") ? true : false;
 
-			// TODO: is there a better way to check for main?
-			if (methodIR.getMethodName().equals("main")) {
+			if (inMain) {
+				// this should be 0, but just to be safe in case we had globals..
+				int assemblySize = assembly.size();
+
+				for (int j = 0; j < methodIR.size(); j++) {
+					Quadruple quad = methodIR.getQuad(j);
+					translateQuad(quad);
+				}
+
+				// stick the method label on the first generated instruction
+				String label = methodIR.canonicalMethodName();
+				assembly.addLabel(label, assembly.getInstruction(assemblySize));
+				// only main can exit like this
 				assembly.addInstruction(new Jal("_system_exit"));
+			} else {
+				addPrologue(methodIR);
+
+				for (int j = 0; j < methodIR.size(); j++) {
+					Quadruple quad = methodIR.getQuad(j);
+					translateQuad(quad);
+				}
+
+				addEpilogue(methodIR);
 			}
 
 			symbolTable.endScope();
@@ -74,100 +95,128 @@ public class MIPSTranslator {
 		return assembly;
 	}
 
+	// TODO: preserve saved temporaries, $s0-$s7?
+	private void addPrologue(MethodIR methodIR) {
+		MIPSFrame frame = frameAllocator.getFrame(methodIR.canonicalMethodName());
+		// allocate space for activation frame
+		Instruction firstInstr = new Addi("$sp", "$sp", -frame.getSize());
+		assembly.addInstruction(firstInstr);
+		// slap a label on the first instruction
+		assembly.addLabel(methodIR.canonicalMethodName(), firstInstr);
+		// save the return address and caller's frame pointer
+		assembly.addInstruction(new Sw("$ra", "$sp", frame.getSize()-4));
+		assembly.addInstruction(new Sw("$fp", "$sp", frame.getSize()-8));
+		// set the frame pointer for convenient access
+		assembly.addInstruction(new Addi("$fp", "$sp", frame.getSize()));
+	}
+
+	private void addEpilogue(MethodIR methodIR) {
+		MIPSFrame frame = frameAllocator.getFrame(methodIR.canonicalMethodName());
+		// update return address to what it was
+		assembly.addInstruction(new Lw("$ra", "$sp", frame.getSize()-4));
+		// update frame pointer to what it was
+		assembly.addInstruction(new Lw("$fp", "$sp", frame.getSize()-8));
+		// deallocate activation frame
+		assembly.addInstruction(new Addi("$sp", "$sp", frame.getSize()));
+		// return to caller
+		assembly.addInstruction(new Jr("$ra"));
+	}
+
 	// TODO: store register info in symbol table so later quads can
 	//       'ask' for the info
-	public ArrayList<Instruction> translateQuad(Quadruple quad) {
+	private void translateQuad(Quadruple quad) {
 		switch (quad.getType()) {
 		case BINARY_ASSIGN:
-			return translateBinaryAssign(quad);
+			translateBinaryAssign(quad);
+			break;
 		case UNARY_ASSIGN:
-			return translateUnaryAssign(quad);
+			translateUnaryAssign(quad);
+			break;
 		case COPY:
-			return translateCopy(quad);
+			translateCopy(quad);
+			break;
 		case JUMP:
-			return translateJump(quad);
+			translateJump(quad);
+			break;
 		case COND_JUMP:
-			return translateConditionalJump(quad);
+			translateConditionalJump(quad);
+			break;
 		case PARAM:
-			return translateParam(quad);
+			translateParam(quad);
+			break;
 		case CALL:
-			return translateCall(quad);
+			translateCall(quad);
+			break;
 		case RETURN:
-			return translateReturn(quad);
+			translateReturn(quad);
+			break;
 		case ARRAY_ASSIGN:
-			return translateArrayAssign(quad);
+			translateArrayAssign(quad);
+			break;
 		case INDEXED_ASSIGN:
-			return translateIndexedAssign(quad);
+			translateIndexedAssign(quad);
+			break;
 		case NEW:
-			return translateNew(quad);
+			translateNew(quad);
+			break;
 		case NEW_ARRAY:
-			return translateNewArray(quad);
+			translateNewArray(quad);
+			break;
 		case LENGTH:
-			return translateLength(quad);
+			translateLength(quad);
+			break;
 		case LOAD:
-			return translateLoad(quad);
+			translateLoad(quad);
+			break;
 		case STORE:
-			return translateStore(quad);
+			translateStore(quad);
+			break;
 		}
-
-		return new ArrayList<Instruction>();
 	}
 
-	private ArrayList<Instruction> translateBinaryAssign(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-
+	private void translateBinaryAssign(Quadruple quad) {
 		// use proper instructions based on operator
 		if (quad.operator.equals("+")) {
-			instructions.add(new Add(quad.result, quad.arg1, quad.arg2));
+			assembly.addInstruction(new Add(quad.result, quad.arg1, quad.arg2));
 		} else if (quad.operator.equals("-")) {
-			instructions.add(new Sub(quad.result, quad.arg1, quad.arg2));
+			assembly.addInstruction(new Sub(quad.result, quad.arg1, quad.arg2));
 		} else if (quad.operator.equals("*")) {
-			instructions.add(new Mult(quad.arg1, quad.arg2));
-			instructions.add(new Mflo(quad.result));
+			assembly.addInstruction(new Mult(quad.arg1, quad.arg2));
+			assembly.addInstruction(new Mflo(quad.result));
 		}
+	}
 
-		return instructions;
+	private void translateUnaryAssign(Quadruple quad) {
 	}
-	private ArrayList<Instruction> translateUnaryAssign(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
-		return instructions;
+
+	private void translateCopy(Quadruple quad) {
+
 	}
-	private ArrayList<Instruction> translateCopy(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
-		return instructions;
+
+	private void translateJump(Quadruple quad) {
 	}
-	private ArrayList<Instruction> translateJump(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
-		return instructions;
+
+	private void translateConditionalJump(Quadruple quad) {
 	}
-	private ArrayList<Instruction> translateConditionalJump(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
-		return instructions;
-	}
-	private ArrayList<Instruction> translateParam(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
+
+	private void translateParam(Quadruple quad) {
 		/*
 		String paramReg = regAllocator.getParamRegister();
 		
 		if (isInt(quad.arg1)) {
-			instructions.add(new Li(paramReg, Integer.parseInt(quad.arg1)));
+			assembly.addInstruction(new Li(paramReg, Integer.parseInt(quad.arg1)));
 		} else if (symbolTable.get(quad.arg1) instanceof VariableAttribute) {
 			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
-			instructions.add(new Move(paramReg, var.getRegister()));
+			assembly.addInstruction(new Move(paramReg, var.getRegister()));
 		}
 		*/
-		return instructions;
 	}
-	private ArrayList<Instruction> translateCall(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
+
+	private void translateCall(Quadruple quad) {
 		/*
 		String fullMethodName = quad.arg1;
 		if (fullMethodName.equals("System.out.println")) {
-			instructions.add(new Jal("_system_out_println"));
+			assembly.addInstruction(new Jal("_system_out_println"));
 			return instructions;
 		}
 
@@ -177,65 +226,60 @@ public class MIPSTranslator {
 		String methodName = fullMethodName.split("\\.")[1];
 		MethodAttribute method = findMethod(className, methodName);
 
-		instructions.add(new Jal(fullMethodName));
-		instructions.add(new Move(resultReg, method.getReturnRegister()));
+		assembly.addInstruction(new Jal(fullMethodName));
+		assembly.addInstruction(new Move(resultReg, method.getReturnRegister()));
 		// store the register loc of result in the symbol table
 		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
 		var.setRegister(resultReg);
 		*/
-		return instructions;
 	}
-	private ArrayList<Instruction> translateReturn(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
+
+	private void translateReturn(Quadruple quad) {
 		/*
 		String returnReg = regAllocator.getReturnRegister();
 
 		if (isInt(quad.arg1)) {
-			instructions.add(new Li(returnReg, Integer.parseInt(quad.arg1)));
+			assembly.addInstruction(new Li(returnReg, Integer.parseInt(quad.arg1)));
 		} else if (symbolTable.get(quad.arg1) instanceof VariableAttribute) {
 			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
-			instructions.add(new Move(returnReg, var.getRegister()));
+			assembly.addInstruction(new Move(returnReg, var.getRegister()));
 		}
 
 		curMethod.setReturnRegister(returnReg);
 		*/
-		return instructions;
 	}
-	private ArrayList<Instruction> translateArrayAssign(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
-		return instructions;
+
+	private void translateArrayAssign(Quadruple quad) {
 	}
-	private ArrayList<Instruction> translateIndexedAssign(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
-		return instructions;
+
+	private void translateIndexedAssign(Quadruple quad) {
 	}
-	private ArrayList<Instruction> translateNew(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
+
+	private void translateNew(Quadruple quad) {
 		/*
 		String resultReg = regAllocator.getTempRegister();
 
-		//instructions.add(new Move(resultReg, "$v0"));
+		//assembly.addInstruction(new Move(resultReg, "$v0"));
 
 		// We don't support objects yet, so store 'null' in the register
-		instructions.add(new Li(resultReg, 0));
+		assembly.addInstruction(new Li(resultReg, 0));
 
 		// store the register loc of result in the symbol table
 		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
 		var.setRegister(resultReg);
 		*/
-		return instructions;
 	}
-	private ArrayList<Instruction> translateNewArray(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
-		return instructions;
+
+	private void translateNewArray(Quadruple quad) {
 	}
-	private ArrayList<Instruction> translateLength(Quadruple quad) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
-		return instructions;
+
+	private void translateLength(Quadruple quad) {
+	}
+
+	private void translateLoad(Quadruple quad) {
+	}
+
+	private void translateStore(Quadruple quad) {
 	}
 
     private boolean isInt(String possibleInt){

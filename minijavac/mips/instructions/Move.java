@@ -1,4 +1,6 @@
-package minijavac.mips;
+package minijavac.mips.instructions;
+
+import minijavac.mips.*;
 
 public class Move extends MIPSInstruction{
     public Move(String rt, String rs){

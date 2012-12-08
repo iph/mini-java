@@ -1,4 +1,6 @@
-package minijavac.mips;
+package minijavac.mips.instructions;
+
+import minijavac.mips.*;
 
 public class Mflo extends MIPSInstruction{
     public Mflo(String rd){

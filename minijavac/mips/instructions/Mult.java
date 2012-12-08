@@ -1,4 +1,6 @@
-package minijavac.mips;
+package minijavac.mips.instructions;
+
+import minijavac.mips.*;
 
 public class Mult extends MIPSInstruction{
     public Mult(String rs, String rt){

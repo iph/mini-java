@@ -1,4 +1,6 @@
-package minijavac.mips;
+package minijavac.mips.instructions;
+
+import minijavac.mips.*;
 
 public class Sub extends MIPSInstruction{
     public Sub(String rd, String rs, String rt){

@@ -1,4 +1,6 @@
-package minijavac.mips;
+package minijavac.mips.instructions;
+
+import minijavac.mips.*;
 
 public class Jump extends MIPSInstruction{
     public Jump(String l){

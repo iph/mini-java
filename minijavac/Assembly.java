@@ -32,20 +32,42 @@ public abstract class Assembly {
         return labelLoc.get(label);
     }
 
-	public boolean hasLabel(Instruction instr) {
+    public boolean hasLabel(Instruction instr) {
+    	return getLabel(instr) != null;
+    }
+
+	public String getLabel(Instruction instr) {
 		for (Map.Entry<String, Instruction> entry : labelLoc.entrySet()) {
 			if (instr == entry.getValue()) {
-				return true;
+				return entry.getKey();
 			}
 		}
-		return false;
+		return null;
 	}
 
 	public String toString() {
-		StringBuffer listing = new StringBuffer();
-		for (Instruction instruction : instructions) {
-			listing.append(instruction.toString() + "\n");
+		StringBuilder repr = new StringBuilder();
+		// add the instructions
+		for (int i = 0; i < instructions.size(); i++) {
+			// add instruction's label if it has one
+			if (hasLabel(instructions.get(i))) {
+				String label = getLabel(instructions.get(i));
+				if (label.contains(".")) {
+					repr.append(String.format("%s:\n", label));
+				} else {
+					repr.append(String.format("%-7s", label + ":"));
+				}
+				// add instruction
+				repr.append(String.format("%s\n", instructions.get(i).toString()));
+			} else {
+				// add instruction
+				repr.append(String.format("       %s\n", instructions.get(i).toString()));
+			}
 		}
-		return listing.toString();
+		return repr.toString();
+	}
+
+	public int size() {
+		return instructions.size();
 	}
 }

@@ -1,4 +1,6 @@
-package minijavac.mips;
+package minijavac.mips.instructions;
+
+import minijavac.mips.*;
 
 public class Add extends MIPSInstruction{
     public Add(String rd, String rs, String rt){
