@@ -3,7 +3,6 @@ package minijavac.ir;
 import java.util.*;
 import minijavac.SymbolTable;
 
-// TODO: should newLabel() be static or per-instance?
 public class MethodIR implements Iterable<Quadruple>{
 	private String className;
 	private String methodName;
@@ -51,7 +50,28 @@ public class MethodIR implements Iterable<Quadruple>{
 		ir.add(quad);
 	}
 
-    public Iterator<Quadruple> iterator(){
+	public void replaceQuadAt(int index, Quadruple quad) {
+		ArrayList<Quadruple> quads = new ArrayList<Quadruple>();
+		quads.add(quad);
+		replaceQuadAt(index, quads);
+	}
+
+	public void replaceQuadAt(int index, ArrayList<Quadruple> quads) {
+		// if the quad we're replacing had a label, update the label to point
+		// to the first quad in our list
+		if (index > 0 && hasLabel(getQuad(index))) {
+			String label = getLabel(getQuad(index));
+			addLabel(label, quads.get(0));
+		}
+
+		// replace the quad at index and insert the others after it
+		ir.set(index, quads.get(0));
+		for (int i = 1; i < quads.size(); i++) {
+			ir.add(index + i, quads.get(i));
+		}
+	}
+
+    public Iterator<Quadruple> iterator() {
         return ir.iterator();
     }
 
@@ -73,17 +93,21 @@ public class MethodIR implements Iterable<Quadruple>{
     }
 
 	public boolean hasLabel(Quadruple quad) {
+		return getLabel(quad) != null;
+	}
+
+	public String getLabel(Quadruple quad) {
 		// the first quad has a special label not stored in our hash
 		if (quad == getQuad(0)) {
-			return true;
+			return canonicalMethodName();
 		}
 
 		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
 			if (quad == entry.getValue()) {
-				return true;
+				return entry.getKey();
 			}
 		}
-		return false;
+		return null;
 	}
 
     // FIXME: rename this method... it's not really backpatching
@@ -126,7 +150,8 @@ public class MethodIR implements Iterable<Quadruple>{
 
 	public String toString() {
 		// add the method's label
-		String repr = canonicalMethodName() + ":\n";
+		StringBuilder repr = new StringBuilder();
+		repr.append(canonicalMethodName() + ":\n");
 		// add the method's instructions
 		for (int i = 0; i < ir.size(); i++) {
 			// add instruction labels if it has them
@@ -134,48 +159,25 @@ public class MethodIR implements Iterable<Quadruple>{
 			boolean hasLabel = labels.size() > 0 ? true : false;
 			for (int j = 0; j < labels.size(); j++) {
 				if (j == labels.size()-1) {
-					repr += String.format("%-7s", labels.get(j) + ":");
+					repr.append(String.format("%-7s", labels.get(j) + ":"));
 				} else {
-					repr += String.format("%s:\n", labels.get(j));
+					repr.append(String.format("%s:\n", labels.get(j)));
 				}
 			}
 
 			if (hasLabel) {
 				// add instruction
-				repr += String.format("%s\n", ir.get(i).toString());
+				repr.append(String.format("%s\n", ir.get(i).toString()));
 			} else {
 				// add instruction
-				repr += String.format("       %s\n", ir.get(i).toString());
+				repr.append(String.format("       %s\n", ir.get(i).toString()));
 			}
 		}
 
-		return repr;
+		return repr.toString();
 	}
 
 	public int size() {
 		return ir.size();
-	}
-
-	public ArrayList<ArrayList<Quadruple>> getBasicBlocks() {
-		ArrayList<ArrayList<Quadruple>> basicBlocks = new ArrayList<ArrayList<Quadruple>>();
-
-		/*
-		boolean blockStarted = false;
-		ArrayList<Quadruple> basicBlock;
-		for (int i = 0; i < size(); i++) {
-			Quadruple curQuad = getQuad(i);
-			if (hasLabel(curQuad)) {
-				if (blockStarted) {
-
-				} else {
-
-				}
-				blockStarted = true;
-				basicBlock = new ArrayList<Quadruple>();
-			}
-		}
-
-		*/
-		return basicBlocks;
 	}
 }

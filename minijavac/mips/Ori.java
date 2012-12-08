@@ -1,6 +1,6 @@
 package minijavac.mips;
 
-public class Ori extends Instruction{
+public class Ori extends MIPSInstruction{
     int imm16;
     public Ori(String rs, String rt, int i){
         this.rs = rs;

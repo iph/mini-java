@@ -8,5 +8,7 @@ public enum InstructionType {
 	RETURN,
 	ARRAY_ASSIGN, INDEXED_ASSIGN,
 	NEW, NEW_ARRAY,
-	LENGTH
+	LENGTH,
+	LOAD, STORE
 }
+

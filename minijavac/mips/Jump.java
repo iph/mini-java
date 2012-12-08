@@ -1,6 +1,6 @@
 package minijavac.mips;
 
-public class Jump extends Instruction{
+public class Jump extends MIPSInstruction{
     public Jump(String l){
         label = l;
     }

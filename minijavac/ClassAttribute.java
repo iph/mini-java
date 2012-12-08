@@ -7,12 +7,14 @@ public class ClassAttribute extends Attribute {
     private String parentClassName;
 	private HashMap<String, VariableAttribute> variables;
 	private HashMap<String, MethodAttribute> methods;
+	int size;
 
 	public ClassAttribute(String identifier, int line, int col) {
 		super(identifier, line, col);
     	parentClass = null;
         methods = new HashMap<String, MethodAttribute>();
 		variables = new HashMap<String, VariableAttribute>();
+		size = -1;
 	}
 
     public void setParentClassName(String s){
@@ -95,6 +97,10 @@ public class ClassAttribute extends Attribute {
 		return variables.get(variableName);
 	}
 
+	public HashMap<String, VariableAttribute> getVariables() {
+		return variables;
+	}
+
 	public boolean hasVariable(String variableName){
         return variables.containsKey(variableName);
 	}
@@ -122,6 +128,14 @@ public class ClassAttribute extends Attribute {
         if(parentClass != null){
             parentClass.getInMyScope(table);
         }
+    }
+
+    public void setSize(int bytes) {
+    	size = bytes;
+    }
+
+    public int getSize() {
+    	return size;
     }
 }
 

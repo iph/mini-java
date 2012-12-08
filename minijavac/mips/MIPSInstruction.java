@@ -1,6 +1,8 @@
 package minijavac.mips;
 
-public abstract class Instruction{
+import minijavac.Instruction;
+
+public abstract class MIPSInstruction extends Instruction {
     String rs, rt, rd;
     String label;
 

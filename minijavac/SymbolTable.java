@@ -81,5 +81,4 @@ public class SymbolTable {
     public HashMap<String, LinkedList<Object>> getEnvironment() {
         return environment;
     }
-
 }

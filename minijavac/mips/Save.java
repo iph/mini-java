@@ -1,6 +1,6 @@
 package minijavac.mips;
 
-public class Save extends Instruction{
+public class Save extends MIPSInstruction{
     private int offset;
     public  Save(String registerSavedFrom, int offset, String memLocation){
         this.rs = registerSavedFrom;

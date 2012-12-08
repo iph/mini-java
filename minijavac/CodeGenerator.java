@@ -11,5 +11,5 @@ public abstract class CodeGenerator {
 		symbolTable = symTable;
 	}
 
-	public abstract void generate();
+	public abstract Assembly generate();
 }

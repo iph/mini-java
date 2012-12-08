@@ -50,6 +50,12 @@ public class Quadruple {
 			return result + " := new " + arg1 + "[], " + arg2;
 		case LENGTH:
 			return result + " := length " + arg1;
+		// Non-standard IR quads
+		case LOAD:
+			return result + " := load " + arg1 + ", offset " + arg2;
+		case STORE:
+			// FIXME: feels dirty using 'result' like this
+			return "store " + arg1 + ", " + result + ", offset " + arg2;
 		}
 		return "";
 	}

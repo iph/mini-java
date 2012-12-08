@@ -1,6 +1,6 @@
 package minijavac.mips;
 
-public class Mult extends Instruction{
+public class Mult extends MIPSInstruction{
     public Mult(String rs, String rt){
         this.rs = rs;
         this.rt = rt;

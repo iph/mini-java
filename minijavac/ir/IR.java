@@ -27,4 +27,14 @@ public class IR {
 	public int size() {
 		return methodIRList.size();
 	}
+
+	public String toString() {
+		StringBuilder str = new StringBuilder();
+
+		for (MethodIR methodIR : methodIRList) {
+			str.append(methodIR.toString() + "\n");
+		}
+
+		return str.toString();
+	}
 }

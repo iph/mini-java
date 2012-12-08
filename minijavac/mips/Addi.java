@@ -1,6 +1,6 @@
 package minijavac.mips;
 
-public class Addi extends Instruction{
+public class Addi extends MIPSInstruction{
     int imm16;
     public Addi(String rs, String rt, int i){
         this.rs = rs;

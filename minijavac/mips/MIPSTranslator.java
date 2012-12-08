@@ -1,24 +1,45 @@
 package minijavac.mips;
 
 import java.util.*;
-import minijavac.SymbolTable;
 import minijavac.ir.*;
-import minijavac.ClassAttribute;
-import minijavac.MethodAttribute;
-import minijavac.VariableAttribute;
+import minijavac.*;
 
 public class MIPSTranslator {
 	private SymbolTable symbolTable;
-	private MIPSRegisterAllocator regAllocator;
+	private MIPSRegisterAllocator registerAllocator;
+	private HashMap<String, ClassAttribute> classes;
+	private MethodAttribute curMethod;
 
-	public MIPSTranslator(SymbolTable symTable) {
+	public MIPSTranslator(SymbolTable symTable, MIPSRegisterAllocator regAlloc) {
 		symbolTable = symTable;
-		regAllocator = new MIPSRegisterAllocator();
+		registerAllocator = regAlloc;
+		curMethod = null;
+		storeClasses();
 	}
 
-	public ArrayList<Instruction> translate(IR ir) {
-		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		
+	public void storeClasses() {
+		classes = new HashMap<String, ClassAttribute>();
+		HashMap<String, LinkedList<Object>> environment = symbolTable.getEnvironment();
+		for (Map.Entry<String, LinkedList<Object>> entry : environment.entrySet()) {
+			Attribute attr = (Attribute)(entry.getValue().get(0));
+			if (attr instanceof ClassAttribute) {
+				classes.put(entry.getKey(), (ClassAttribute)attr);
+			}
+		}
+	}
+
+	public MethodAttribute findMethod(String className, String methodName) {
+		if (classes.get(className) == null) {
+			return null;
+		}
+
+		ClassAttribute klass = classes.get(className);
+		return klass.getMethod(methodName);
+	}
+
+	public Assembly translate(IR ir) {
+		Assembly assembly = new MIPSAssembly();
+
 		for (int i = 0; i < ir.size(); i++) {
 			MethodIR methodIR = ir.getMethodIR(i);
 			
@@ -30,21 +51,23 @@ public class MIPSTranslator {
 			MethodAttribute method = klass.getMethod(methodIR.getMethodName());
 			method.getInMyScope(symbolTable);
 
+			curMethod = method;
+
 			for (int j = 0; j < methodIR.size(); j++) {
 				Quadruple quad = methodIR.getQuad(j);
-				instructions.addAll(translateQuad(quad));
+				assembly.addInstructions(translateQuad(quad));
 			}
 
 			// TODO: is there a better way to check for main?
 			if (methodIR.getMethodName().equals("main")) {
-				instructions.add(new Jal("_system_exit"));
+				assembly.addInstruction(new Jal("_system_exit"));
 			}
 
 			symbolTable.endScope();
 			symbolTable.endScope();
 		}
 
-		return instructions;
+		return assembly;
 	}
 
 	// TODO: store register info in symbol table so later quads can
@@ -84,38 +107,16 @@ public class MIPSTranslator {
 
 	private ArrayList<Instruction> translateBinaryAssign(Quadruple quad) {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		String reg1 = "";
-		String reg2 = "";
 
-		if (isInt(quad.arg1)) {
-			reg1 = regAllocator.getTempRegister();
-			instructions.add(new Li(reg1, Integer.parseInt(quad.arg1)));
-		} else if (symbolTable.get(quad.arg1) instanceof VariableAttribute) {
-			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
-			reg1 = var.getRegister();
-		}
-
-		if (isInt(quad.arg2)) {
-			reg2 = regAllocator.getTempRegister();
-			instructions.add(new Li(reg2, Integer.parseInt(quad.arg2)));
-		} else if (symbolTable.get(quad.arg2) instanceof VariableAttribute) {
-			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg2);
-			reg2 = var.getRegister();
-		}
-		
-		String resultReg = regAllocator.getTempRegister();
 		// use proper instructions based on operator
 		if (quad.operator.equals("+")) {
-			instructions.add(new Add(resultReg, reg1, reg2));
+			instructions.add(new Add(quad.result, quad.arg1, quad.arg2));
 		} else if (quad.operator.equals("-")) {
-			instructions.add(new Sub(resultReg, reg1, reg2));
+			instructions.add(new Sub(quad.result, quad.arg1, quad.arg2));
 		} else if (quad.operator.equals("*")) {
-			instructions.add(new Mult(reg1, reg2));
-			instructions.add(new Mflo(resultReg));
+			instructions.add(new Mult(quad.arg1, quad.arg2));
+			instructions.add(new Mflo(quad.result));
 		}
-		// store the register loc of result in the symbol table
-		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
-		var.setRegister(resultReg);
 
 		return instructions;
 	}
@@ -141,6 +142,7 @@ public class MIPSTranslator {
 	}
 	private ArrayList<Instruction> translateParam(Quadruple quad) {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
+		/*
 		String paramReg = regAllocator.getParamRegister();
 		
 		if (isInt(quad.arg1)) {
@@ -149,26 +151,46 @@ public class MIPSTranslator {
 			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
 			instructions.add(new Move(paramReg, var.getRegister()));
 		}
-
+		*/
 		return instructions;
 	}
 	private ArrayList<Instruction> translateCall(Quadruple quad) {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
+		/*
 		String fullMethodName = quad.arg1;
 		if (fullMethodName.equals("System.out.println")) {
 			instructions.add(new Jal("_system_out_println"));
 			return instructions;
 		}
 
-		String className = fullMethodName.split(".")[0];
-		String methodName = fullMethodName.split(".")[1];
-		MethodAttribute method = (MethodAttribute)symbolTable.get(methodName);
-		// TODO: check if method is in className?
+		String resultReg = regAllocator.getTempRegister();
+
+		String className = fullMethodName.split("\\.")[0];
+		String methodName = fullMethodName.split("\\.")[1];
+		MethodAttribute method = findMethod(className, methodName);
+
+		instructions.add(new Jal(fullMethodName));
+		instructions.add(new Move(resultReg, method.getReturnRegister()));
+		// store the register loc of result in the symbol table
+		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
+		var.setRegister(resultReg);
+		*/
 		return instructions;
 	}
 	private ArrayList<Instruction> translateReturn(Quadruple quad) {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
+		/*
+		String returnReg = regAllocator.getReturnRegister();
+
+		if (isInt(quad.arg1)) {
+			instructions.add(new Li(returnReg, Integer.parseInt(quad.arg1)));
+		} else if (symbolTable.get(quad.arg1) instanceof VariableAttribute) {
+			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
+			instructions.add(new Move(returnReg, var.getRegister()));
+		}
+
+		curMethod.setReturnRegister(returnReg);
+		*/
 		return instructions;
 	}
 	private ArrayList<Instruction> translateArrayAssign(Quadruple quad) {
@@ -183,7 +205,18 @@ public class MIPSTranslator {
 	}
 	private ArrayList<Instruction> translateNew(Quadruple quad) {
 		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-		// TODO
+		/*
+		String resultReg = regAllocator.getTempRegister();
+
+		//instructions.add(new Move(resultReg, "$v0"));
+
+		// We don't support objects yet, so store 'null' in the register
+		instructions.add(new Li(resultReg, 0));
+
+		// store the register loc of result in the symbol table
+		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
+		var.setRegister(resultReg);
+		*/
 		return instructions;
 	}
 	private ArrayList<Instruction> translateNewArray(Quadruple quad) {

@@ -1,6 +1,6 @@
 package minijavac.mips;
 
-public class Mflo extends Instruction{
+public class Mflo extends MIPSInstruction{
     public Mflo(String rd){
         this.rd = rd;
     }

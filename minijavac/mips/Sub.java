@@ -1,6 +1,6 @@
 package minijavac.mips;
 
-public class Sub extends Instruction{
+public class Sub extends MIPSInstruction{
     public Sub(String rd, String rs, String rt){
         this.rd = rd;
         this.rs = rs;

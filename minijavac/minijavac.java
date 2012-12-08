@@ -44,7 +44,8 @@ public class minijavac {
 
             // Generate the MIPS code!
             CodeGenerator codeGen = new MIPSCodeGenerator(ir, symbolTable);
-            codeGen.generate();
+            Assembly assembly = codeGen.generate();
+            System.out.println(assembly);
 		} catch (IOException e) {
 			System.err.println("ERROR: Unable to open file: " + args[0]);
 		} catch (Exception e) {
