@@ -6,6 +6,8 @@ import minijavac.ir.*;
 
 public class MIPSObjectTransformer {
 	private SymbolTable symbolTable;
+	private ClassAttribute curClass;
+	private MethodAttribute curMethod;
 
 	public MIPSObjectTransformer(SymbolTable symTable) {
 		symbolTable = symTable;
@@ -15,10 +17,16 @@ public class MIPSObjectTransformer {
 		for (int i = 0; i < ir.size(); i++) {
 			MethodIR methodIR = ir.getMethodIR(i);
 			
-			// adjust the symbol table's scope to be in the class
+			// adjust the symbol table's scope
 			symbolTable.startScope();
 			ClassAttribute klass = (ClassAttribute)symbolTable.get(methodIR.getClassName());
 			klass.getInMyScope(symbolTable);
+			symbolTable.startScope();
+			MethodAttribute method = klass.getMethod(methodIR.getMethodName());
+			method.getInMyScope(symbolTable);
+
+			curClass = klass;
+			curMethod = method;
 
 			updateUses(methodIR);
 			updateDefs(methodIR);
@@ -42,37 +50,47 @@ public class MIPSObjectTransformer {
 
 			switch (quad.getType()) {
 			case BINARY_ASSIGN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute)
+				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute 
+					&& !curMethod.hasVariable(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
-				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute)
+				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg1))
 					vars.add((VariableAttribute)arg2Symbol);
 				break;
 			case UNARY_ASSIGN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute)
+				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
 				break;
 			case COPY:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute)
+				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
 				break;
 			case RETURN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute)
+				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
 				break;
 			case ARRAY_ASSIGN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute)
+				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
-				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute)
+				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg2))
 					vars.add((VariableAttribute)arg2Symbol);
 				break;
 			case INDEXED_ASSIGN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute) 
+				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
-				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute) 
+				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg2))
 					vars.add((VariableAttribute)arg2Symbol);
 				break;
 			case LENGTH:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute) 
+				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
 				break;
 			}
@@ -120,7 +138,8 @@ public class MIPSObjectTransformer {
 			case NEW:
 			case NEW_ARRAY:
 			case LENGTH:
-				if (resultSymbol != null && resultSymbol instanceof VariableAttribute)
+				if (resultSymbol != null && resultSymbol instanceof VariableAttribute
+					&& !curMethod.hasVariable(quad.result))
 					var = (VariableAttribute)resultSymbol;
 				break;
 			}
@@ -132,8 +151,7 @@ public class MIPSObjectTransformer {
 				// create a temp var that holds the result of the instruction
 				// instead of our class var
 				String tempVar = methodIR.nextTempVar();
-				MethodAttribute method = (MethodAttribute)symbolTable.get(methodIR.getMethodName());
-				method.addVariable(tempVar, new VariableAttribute(tempVar, var.getType()));
+				curMethod.addVariable(tempVar, new VariableAttribute(tempVar, var.getType()));
 				// update the old quad to use the temp
 				quad.result = tempVar;
 

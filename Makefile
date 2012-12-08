@@ -1,5 +1,5 @@
-INPUT_FILE = tests/milestones/Milestone2.java
-OUTPUT_FILE = Milestone2.txt
+INPUT_FILE = tests/MIPSTest.java
+OUTPUT_FILE = MIPSTest.txt
 
 TEST_FILES = easy-test.java test.java BubbleSort.java \
 			 ir/Inheritance.java \
