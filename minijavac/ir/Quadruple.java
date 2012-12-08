@@ -52,10 +52,10 @@ public class Quadruple {
 			return result + " := length " + arg1;
 		// Non-standard IR quads
 		case LOAD:
-			return result + " := load " + arg1 + ", offset " + arg2;
+			return result + " := load " + arg1 + " + offset " + arg2;
 		case STORE:
 			// FIXME: feels dirty using 'result' like this
-			return "store " + arg1 + ", " + result + ", offset " + arg2;
+			return "store " + arg1 + ", " + result + " + offset " + arg2;
 		}
 		return "";
 	}
