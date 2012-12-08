@@ -32,6 +32,19 @@ class Subclass extends Object {
 
     public int DiffMethod(int x, int y) {
         d = 1;
+        while (true) {
+            if (true)
+                d = 2;
+            else {
+                if (true) 
+                if ((!true) && 
+                    (!true) )
+                    d = 4;
+                else 
+                    d = 5;
+                else d = 6;
+            }
+        }
         return 0;
     }
 }

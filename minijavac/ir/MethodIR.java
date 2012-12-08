@@ -129,16 +129,39 @@ public class MethodIR implements Iterable<Quadruple>{
 			}
 		}
 
-		// TODO: make a final pass through the labels to find any
-		//       that point to the same quad. remove the 'duplicate'
-		//       and adjust instructions that reference it
+		// make a final pass through the labels to find any
+		// that point to the same quad. remove the 'duplicate'
+		// and adjust instructions that reference it
+		for (Quadruple quad : this) {
+			ArrayList<String> labels = getLabels(quad);
+			if (labels.size() > 1) {
+				// we have more than one label for this quad, so get rid
+				// of all but the first
+				String label = labels.get(0);
+				for (int i = 1; i < labels.size(); i++) {
+					String unwantedLabel = labels.get(i);
+					labelLoc.remove(unwantedLabel);
+					// update all references to the 'new' label
+					for (int j = 0; j < ir.size(); j++) {
+						switch (ir.get(j).getType()) {
+						case JUMP:
+						case COND_JUMP:
+							if (ir.get(j).arg1.equals(unwantedLabel)) {
+								ir.get(j).arg1 = label;
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	public Quadruple getQuad(int index) {
 		return ir.get(index);
 	}
 
-	public ArrayList<String> getLabels(Quadruple quad) {
+	private ArrayList<String> getLabels(Quadruple quad) {
 		ArrayList<String> labels = new ArrayList<String>();
 		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
 			if (quad == entry.getValue()) {
