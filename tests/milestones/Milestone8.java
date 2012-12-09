@@ -61,7 +61,8 @@ class Object {
 
 class ChildObject extends Object {
 	int val;
-
+	int val2;
+	
 	public int InitChild() {
 		int parentVal;
 
