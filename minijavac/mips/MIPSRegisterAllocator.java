@@ -53,13 +53,20 @@ public class MIPSRegisterAllocator {
         start.arg1 = "$a0";
 
         method.insertQuad(0, start);
-        
+
         for (int i = 0; i < methodAttrs.parameterListSize(); i++) {
         	if (i < 3) {
                 Quadruple q = new Quadruple(InstructionType.COPY);
                 q.result = methodAttrs.getParameter(i).getIdentifier();
                 q.arg1 = "$a" + (i + 1);
 
+                method.insertQuad(0, q);
+            }
+            else{
+                Quadruple q = new Quadruple(InstructionType.LOAD);
+                q.result = methodAttrs.getParameter(i).getIdentifier();
+                q.arg1 = ("$sp");
+                q.arg2 = "" + (-8 + (i-4)*4);
                 method.insertQuad(0, q);
             }
         }
