@@ -24,10 +24,12 @@ public class RegisterAllocator{
 
     public RegisterAllocator(MethodIR method){
         this.method = method;
+        System.out.println(method);
         rewriteParams();
         live = new Live(method);
         live.computeLiveness();
         ifg = new InterferenceGraph(live);
+        System.out.println(live);
         inStack = new HashSet<String>();
         uncoloredVars = new Stack<String>();
         precoloredVars = new HashSet<String>();
@@ -52,7 +54,7 @@ public class RegisterAllocator{
         while(place > 0 && method.getQuad(place).getType() == InstructionType.PARAM){
             place--;
         }
-
+        place++;
         // We are all setup to start pushing params on.
         while(method.getQuad(place).getType() == InstructionType.PARAM){
             if(paramsPlace < 4){

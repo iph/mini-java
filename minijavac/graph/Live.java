@@ -73,6 +73,7 @@ public class Live{
                     break;
                 case CALL:
                     //TODO: Put blockers on the $t0-$t9 entries.
+                    def.add(quad.result);
                     def.add("$v0");
                     break;
                 case RETURN:
