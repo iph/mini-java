@@ -244,18 +244,18 @@ public class MIPSTranslator {
 	}
 
 	private void translateLoad(Quadruple quad) {
-
+		assembly.addInstruction(new Lw(quad.result, quad.arg1, quad.arg2));
 	}
 
 	private void translateStore(Quadruple quad) {
-		
+		assembly.addInstruction(new Sw(quad.arg1, quad.result, quad.arg2));
 	}
 
-    private boolean isInt(String possibleInt){
-        try{
+    private boolean isInt(String possibleInt) {
+        try {
             Integer.parseInt(possibleInt);
             return true;
-        }catch(Exception e){
+        } catch(Exception e) {
             return false;
         }
     }
