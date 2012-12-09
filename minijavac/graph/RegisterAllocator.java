@@ -1,5 +1,6 @@
 package minijavac.graph;
 import minijavac.ir.*;
+import minijavac.mips.MIPSFrame;
 import java.util.*;
 import minijavac.*;
 
@@ -18,13 +19,15 @@ public class RegisterAllocator{
     Live live;
     Map<String, Register> coloredVars;
     MethodIR method;
+    MIPSFrame frame;
     Map<Quadruple, Quadruple> coalescedQuads;
     int coloredNodesFound;
     boolean canWrite;
 
-    public RegisterAllocator(MethodIR method){
+    public RegisterAllocator(MethodIR method, MIPSFrame f){
         this.method = method;
         canWrite = true;
+        frame = f;
         rewriteParams();
         live = new Live(method);
         live.computeLiveness();
@@ -37,8 +40,25 @@ public class RegisterAllocator{
         potentialMoves = new HashSet<String>();
         coloredVars = new HashMap<String, Register>();
         precolor();
-        System.out.println(ifg);
         resolveMoves();
+    }
+
+    public void rebuild(){
+        undoCoalesces();
+        canWrite = true;
+        live = new Live(method);
+        live.computeLiveness();
+        ifg = new InterferenceGraph(live);
+        inStack = new HashSet<String>();
+        uncoloredVars = new Stack<String>();
+        coalescedQuads = new HashMap<Quadruple, Quadruple>();
+        precoloredVars = new HashSet<String>();
+        precolorsFound = new HashSet<String>();
+        potentialMoves = new HashSet<String>();
+        coloredVars = new HashMap<String, Register>();
+        precolor();
+        resolveMoves();
+
     }
 
     /* Will rewrite parameters to IR copy instructions. */
@@ -91,6 +111,7 @@ public class RegisterAllocator{
             q.operator = "+";
             method.insertQuad(place+1, q);
             amountShifted += 2;
+            place += 1;
         }
         place ++;
         // We are all setup to start pushing params on.
@@ -155,12 +176,13 @@ public class RegisterAllocator{
     }
 
     public void color(){
-        canWrite = false;
         while(inStack.size() + precolorsFound.size() < ifg.vars().size()){
             int addedNode = simplify();
             if(addedNode == -1){
                 boolean coal = coalesce();
                 if(!coal){
+                    markPotentialSpill();
+                    canWrite = false;
                     System.out.println("SPILL!");
                 }
             }
@@ -174,7 +196,6 @@ public class RegisterAllocator{
     }
 
     private boolean coalesce(){
-            System.out.println(potentialMoves);
         for(String potential: potentialMoves){
             for(Object pB: ifg.moves(potential).toArray()){
                 String potentialB = (String) pB;
@@ -296,7 +317,6 @@ public class RegisterAllocator{
             for(int i = 0; i < method.size(); i++){
                 Quadruple quad = method.getQuad(i);
                 if(coalescedQuads.containsKey(quad)){
-                    System.out.println(quad);
                     method.replaceQuadAt(i, coalescedQuads.get(quad));
                 }
             }
@@ -370,6 +390,15 @@ public class RegisterAllocator{
             size = method.size();
         }
 
+    }
+
+    private void undoCoalesces(){
+        for(int i = 0; i < method.size(); i++){
+            Quadruple rewritten = method.getQuad(i);
+            if(coalescedQuads.containsKey(rewritten)){
+                method.replaceQuadAt(i, coalescedQuads.get(rewritten));
+            }
+        }
     }
 
 }
