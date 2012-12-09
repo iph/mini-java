@@ -57,7 +57,13 @@ public class MIPSIRTransformer {
 	}
 
     private void updateFormalDefs(MethodIR method, MethodAttribute methodAttrs){
-        for(int i = 0; i < methodAttrs.parameterListSize(); i++){
+        Quadruple start = new Quadruple(InstructionType.COPY);
+        start.result = "this";
+        start.arg1 = "$a0";
+
+        method.insertQuad(0, start);
+
+        for(int i = 1; i < methodAttrs.parameterListSize(); i++){
             if( i < 4){
                 Quadruple q = new Quadruple(InstructionType.COPY);
                 q.result = methodAttrs.getParameter(i).getIdentifier();

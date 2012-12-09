@@ -4,7 +4,6 @@ import java.util.*;
 import minijavac.*;
 
 public class RegisterAllocator{
-    public static final int K = 9;
     public static final Register[] colorable = {
         Register.TEMP1, Register.TEMP2, Register.TEMP3, Register.TEMP4,
         Register.TEMP5, Register.TEMP6, Register.TEMP7,
@@ -12,30 +11,34 @@ public class RegisterAllocator{
         Register.SAVE1, Register.SAVE2, Register.SAVE3, Register.SAVE4,
         Register.SAVE5, Register.SAVE6, Register.SAVE7, Register.SAVE8
     };
+    public static final int K = colorable.length;
     InterferenceGraph ifg;
     Set<String> inStack, precoloredVars, precolorsFound, potentialMoves;
     Stack<String> uncoloredVars;
     Live live;
     Map<String, Register> coloredVars;
     MethodIR method;
+    Map<Quadruple, Quadruple> coalescedQuads;
     int coloredNodesFound;
+    boolean canWrite;
 
     public RegisterAllocator(MethodIR method){
         this.method = method;
+        canWrite = true;
         rewriteParams();
         live = new Live(method);
         live.computeLiveness();
         ifg = new InterferenceGraph(live);
         inStack = new HashSet<String>();
         uncoloredVars = new Stack<String>();
+        coalescedQuads = new HashMap<Quadruple, Quadruple>();
         precoloredVars = new HashSet<String>();
         precolorsFound = new HashSet<String>();
         potentialMoves = new HashSet<String>();
         coloredVars = new HashMap<String, Register>();
-        System.out.println(method);
         precolor();
         resolveMoves();
-
+        System.out.println(live);
     }
 
     /* Will rewrite parameters to IR copy instructions. */
@@ -90,7 +93,8 @@ public class RegisterAllocator{
     private void resolveMoves(){
         for(String var: ifg.vars()){
            Set<String> moves = ifg.moves(var);
-           for(String other: moves){
+           for(Object o: moves.toArray()){
+               String other = (String)o;
                //If the two interfere, remove the bond.
                 if(ifg.hasNeighbor(var, other)){
                     ifg.removeMove(var, other);
@@ -109,6 +113,7 @@ public class RegisterAllocator{
     }
 
     public void color(){
+        canWrite = false;
         while(inStack.size() + precolorsFound.size() < ifg.vars().size()){
             int addedNode = simplify();
             if(addedNode == -1){
@@ -129,10 +134,8 @@ public class RegisterAllocator{
     private boolean coalesce(){
             System.out.println(potentialMoves);
         for(String potential: potentialMoves){
-            System.out.println("Potential: " + potential);
             for(Object pB: ifg.moves(potential).toArray()){
                 String potentialB = (String) pB;
-                System.out.println("Other: " + potentialB);
                 if(precoloredVars.contains(potentialB)){
                     continue;
                 }
@@ -180,19 +183,26 @@ public class RegisterAllocator{
             ifg.addEdge(keep, newConnection);
             ifg.removeEdge(toRemove, newConnection);
         }
-        //TODO: Update quad to completely remove instruction.
         for(Quadruple quad: method){
+            Quadruple savedQuad = new Quadruple(quad);
+            boolean wrote = false;
             if(quad.result.equals(toRemove)){
                 quad.result = keep;
+                wrote = true;
             }
             if(quad.arg1.equals(toRemove)){
                 quad.arg1 = keep;
+                wrote = true;
             }
             if(quad.arg2.equals(toRemove)){
                 quad.arg2 = keep;
+                wrote = true;
+            }
+
+            if(wrote && !canWrite){
+                coalescedQuads.put(quad, savedQuad);
             }
         }
-
         ifg.removeMove(keep, toRemove);
         ifg.removeMove(toRemove, keep);
         Set<String> toRemoveMoves = ifg.moves(toRemove);
@@ -238,6 +248,20 @@ public class RegisterAllocator{
             return -1;
         }
     }
+
+    private void restoreState(){
+        if(!canWrite){
+            for(int i = 0; i < method.size(); i++){
+                Quadruple quad = method.getQuad(i);
+                if(coalescedQuads.containsKey(quad)){
+                    System.out.println(quad);
+                    method.replaceQuadAt(i, coalescedQuads.get(quad));
+                }
+            }
+        }
+
+
+    }
     /* Checks to see whether a variable can be colored a certain color.
      *
      * Returns true if it can be colored with that register.
@@ -277,7 +301,7 @@ public class RegisterAllocator{
         }
     }
     private void rewriteVariables(){
-        for(Quadruple quad: method){
+       for(Quadruple quad: method){
             if(coloredVars.containsKey(quad.result)){
                 quad.result = coloredVars.get(quad.result).toString();
             }
@@ -291,7 +315,10 @@ public class RegisterAllocator{
         int size = method.size();
         for(int i = 0; i < size; i++){
             Quadruple quad = method.getQuad(i);
-
+            if(!precoloredVars.contains(quad.result) && !quad.result.equals("")){
+                method.remove(i);
+                i--;
+            }
             if(quad.getType() == InstructionType.COPY){
                 if(quad.result.equals(quad.arg1)){
                    method.remove(i);
@@ -300,6 +327,7 @@ public class RegisterAllocator{
             }
             size = method.size();
         }
+
     }
 
 }
