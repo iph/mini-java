@@ -56,11 +56,11 @@ public abstract class Assembly {
 				if (label.contains(".")) {
 					repr.append(String.format("%s:\n", label));
 				} else {
-					repr.append(String.format("%-7s", label + ":"));
+					repr.append(String.format("%-8s", label + ":"));
 				}
 			}
 			// add instruction
-			repr.append(String.format("       %s\n", instructions.get(i).toString()));
+			repr.append(String.format("        %s\n", instructions.get(i).toString()));
 		}
 		return repr.toString();
 	}
