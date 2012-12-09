@@ -29,13 +29,14 @@ public class MIPSIRTransformer {
 	public void transform(IR ir) {
 		for (int i = 0; i < ir.size(); i++) {
 			MethodIR methodIR = ir.getMethodIR(i);
-			
+
 			// adjust the symbol table's scope
 			symbolTable.startScope();
 			ClassAttribute klass = (ClassAttribute)symbolTable.get(methodIR.getClassName());
 			klass.getInMyScope(symbolTable);
 			symbolTable.startScope();
 			MethodAttribute method = klass.getMethod(methodIR.getMethodName());
+            updateFormalDefs(methodIR, method);
 			method.getInMyScope(symbolTable);
 
 			curClass = klass;
@@ -55,10 +56,21 @@ public class MIPSIRTransformer {
 		}
 	}
 
+    private void updateFormalDefs(MethodIR method, MethodAttribute methodAttrs){
+        for(int i = 0; i < methodAttrs.parameterListSize(); i++){
+            if( i < 4){
+                Quadruple q = new Quadruple(InstructionType.COPY);
+                q.result = methodAttrs.getParameter(i).getIdentifier();
+                q.arg1 = "$a" + (i + 1);
+
+                method.insertQuad(0, q);
+            }
+        }
+    }
 	private boolean isClassVar(String identifier) {
 		Object var = symbolTable.get(identifier);
-		return (var != null 
-				&& var instanceof VariableAttribute 
+		return (var != null
+				&& var instanceof VariableAttribute
 				&& !curMethod.hasVariable(identifier)
 				&& !curMethod.hasParameter(identifier));
 	}
@@ -120,7 +132,7 @@ public class MIPSIRTransformer {
 				for (int j = 0; j < vars.size(); j++) {
 					String tempVar = methodIR.nextTempVar();
 					curMethod.addVariable(tempVar, new VariableAttribute(tempVar, curClass.getIdentifier()));
-					
+
 					Quadruple thisQuad = new Quadruple(InstructionType.COPY);
 					thisQuad.operator = ":=";
 					thisQuad.result = tempVar;
@@ -459,7 +471,7 @@ public class MIPSIRTransformer {
 			newQuads.add(sizeQuad);
 			newQuads.add(paramQuad);
 			newQuads.add(callQuad);
-			
+
 			methodIR.replaceQuadAt(i, newQuads);
 		}
 	}
