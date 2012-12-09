@@ -19,6 +19,10 @@ public class Quadruple {
 		return type;
 	}
 
+    public void setType(InstructionType t){
+        type = t;
+    }
+
 	public String toString() {
 		switch (type) {
 		case BINARY_ASSIGN:

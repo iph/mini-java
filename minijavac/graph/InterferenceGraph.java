@@ -26,14 +26,13 @@ public class InterferenceGraph extends Graph{
      * */
     public InterferenceGraph(Live l){
         super();
-        System.out.println(l);
         vars = new HashMap<String, Node>();
         inverseVars = new HashMap<Node, String>();
         moves = new HashMap<Node, Set<String>>();
         for(Node n: l.nodes()){
             addInterferenceEdges(l.liveIn(n));
             Quadruple ins = l.getInstruction(n);
-            if(ins.getType() == InstructionType.COPY){
+            if(ins.getType() == InstructionType.COPY && !isInt(ins.arg1)){
                 addInterferenceMove(l.liveOut(n), ins.arg1, ins.result);
             }else{
                 addInterferenceEdges(l.liveOut(n));
@@ -60,6 +59,18 @@ public class InterferenceGraph extends Graph{
             }
         }
     }
+
+    private boolean isInt(String possibleInt){
+        try{
+            Integer.parseInt(possibleInt);
+            return true;
+        }catch(Exception e){
+            return false;
+        }
+    }
+
+
+
     /* Same as addInterferenceEdges except deals with a move variable. */
     private void addInterferenceMove(Set<String> set, String move, String moveTo){
         for(String a: set){
@@ -67,18 +78,12 @@ public class InterferenceGraph extends Graph{
                 createNode(a);
             }
         }
-        if(!vars.containsKey(move)){
-            Node n = createNode();
-            put(move, n);
+        if(vars.containsKey(move) && vars.containsKey(moveTo)){
+            Set<String> moveSet = moves.get(vars.get(moveTo));
+            moveSet.add(move);
+            moveSet = moves.get(vars.get(move));
+            moveSet.add(moveTo);
         }
-        if(!vars.containsKey(moveTo)){
-            Node n = createNode();
-            put(moveTo, n);
-        }
-        Set<String> moveSet = moves.get(vars.get(moveTo));
-        moveSet.add(move);
-        moveSet = moves.get(vars.get(move));
-        moveSet.add(moveTo);
 
         for(String a: set){
             for(String b: set){
@@ -146,7 +151,6 @@ public class InterferenceGraph extends Graph{
                 continue;
             }
             str.append("|  ~moves~  |\n");
-            System.out.println(var);
             for(String other: moves.get(vars.get(var)) ){
                 str.append("| " + String.format("%9s", other) + " |\n");
             }

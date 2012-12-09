@@ -32,7 +32,7 @@ run:
 	$(RUN) $(INPUT_FILE)
 
 run_graph:
-	java minijavac.graph.TestGraph
+	java minijavac.graph.TestGraph2
 
 test:            
 	javac minijavac/TestSuite.java

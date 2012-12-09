@@ -8,30 +8,90 @@ public class RegisterAllocator{
     public static final Register[] colorable = {
         Register.TEMP1, Register.TEMP2, Register.TEMP3, Register.TEMP4,
         Register.TEMP5, Register.TEMP6, Register.TEMP7,
-        Register.TEMP8, Register.TEMP9, Register.TEMP10
+        Register.TEMP8, Register.TEMP9, Register.TEMP10,
+        Register.SAVE1, Register.SAVE2, Register.SAVE3, Register.SAVE4,
+        Register.SAVE5, Register.SAVE6, Register.SAVE7, Register.SAVE8
     };
     InterferenceGraph ifg;
     Set<String> inStack;
     Stack<String> uncoloredVars;
+    Set<String> precoloredVars;
+    Set<String> precolorsFound;
     Live live;
     Map<String, Register> coloredVars;
     MethodIR method;
+    int coloredNodesFound;
 
     public RegisterAllocator(MethodIR method){
         this.method = method;
+        rewriteParams();
         live = new Live(method);
         live.computeLiveness();
         ifg = new InterferenceGraph(live);
         inStack = new HashSet<String>();
         uncoloredVars = new Stack<String>();
+        precoloredVars = new HashSet<String>();
+        precolorsFound = new HashSet<String>();
         coloredVars = new HashMap<String, Register>();
+        precolor();
     }
 
+    public void rewriteParams(){
+        for(int i = 0; i < method.size(); i++){
+            Quadruple quad = method.getQuad(i);
+            if (quad.getType() == InstructionType.CALL){
+                interfereParams(i-1);
+                i++;
+            }
+        }
+    }
+    public void interfereParams(int place){
+        Register[] params = {Register.ARG1, Register.ARG2, Register.ARG3, Register.ARG4};
+        int paramsPlace = 0;
+
+        while(place > 0 && method.getQuad(place).getType() == InstructionType.PARAM){
+            place--;
+        }
+
+        // We are all setup to start pushing params on.
+        while(method.getQuad(place).getType() == InstructionType.PARAM){
+            if(paramsPlace < 4){
+                Quadruple q = new Quadruple(InstructionType.COPY);
+                q.result = params[paramsPlace].toString();
+                q.arg1 = method.getQuad(place).arg1;
+                method.setQuad(place, q);
+                paramsPlace++;
+            }
+            else{
+                //TODO : Put shit onto the stack here.
+            }
+            place++;
+        }
+
+        Quadruple call = method.getQuad(place);
+        if(paramsPlace < 4){
+            Quadruple q = new Quadruple(InstructionType.COPY);
+            q.result = params[paramsPlace].toString();
+            q.arg1 = call.arg2;
+            method.insertQuad(place, q);
+        }
+        else{
+            //TODO Put stack shit here as well!
+        }
+
+    }
+    public void precolor(){
+        for(Register reg: Register.values()){
+           precoloredVars.add(reg.toString());
+           coloredVars.put(reg.toString(), reg);
+        }
+    }
     public void color(){
-        while(inStack.size() < ifg.vars().size()){
+        while(inStack.size() + precolorsFound.size() < ifg.vars().size()){
             int addedNode = simplify();
             if(addedNode == -1){
                 System.out.println("SPILL!!!");
+                return;
             }
         }
 
@@ -59,13 +119,18 @@ public class RegisterAllocator{
      *
      * Returns:
      *      1: If successful
-     *     -1: Failed to find a node
+     *     -1: Failed to find a node to simplify
      */
     private int simplify(){
         String bestVar = null;
         int best = -1;
         for(String var: ifg.vars()){
+            if(precoloredVars.contains(var)){
+                precolorsFound.add(var);
+                continue;
+            }
             int currK = kNeighbors(var);
+
             if(currK < K && currK > best && !inStack.contains(var)){
                 best = currK;
                 bestVar = var;

@@ -7,22 +7,21 @@ public class TestGraph2{
     public static void main(String[] args){
         MethodIR method = new MethodIR("herp", null);
         Quadruple[] quads = new Quadruple[10];
-        quads[0] = new Quadruple(InstructionType.UNARY_ASSIGN);
-        quads[0].result = "x";
-        quads[0].arg1 = "0";
+        quads[0] = new Quadruple(InstructionType.PARAM);
+        quads[0].arg1 = "a";
         quads[0].operator = "";
 
-        quads[1] = new Quadruple(InstructionType.BINARY_ASSIGN);
-        quads[1].result = "a";
-        quads[1].arg1 = "x";
-        quads[1].arg2 = "2";
-        quads[1].operator = "*";
+        quads[1] = new Quadruple(InstructionType.PARAM);
+        quads[1].result = "";
+        quads[1].arg1 = "b";
+        quads[1].arg2 = "";
+        quads[1].operator = "";
 
-        quads[2] = new Quadruple(InstructionType.BINARY_ASSIGN);
+        quads[2] = new Quadruple(InstructionType.CALL);
         quads[2].result = "x";
-        quads[2].arg1 = "x";
-        quads[2].arg2 = "1";
-        quads[2].operator = "+";
+        quads[2].arg1 = "f";
+        quads[2].arg2 = "2";
+        quads[2].operator = "";
 
 
         quads[3] = new Quadruple(InstructionType.BINARY_ASSIGN);
@@ -42,10 +41,13 @@ public class TestGraph2{
             method.addQuad(quads[i]);
         }
 
-        method.addLabel("LOOP", quads[1]);
-
-        Live l = new Live(method);
-        l.computeLiveness();
+        method.addLabel("LOOP", quads[0]);
+        System.out.println("Before~~~~~~~~~~\n\n");
+        System.out.println(method);
+        RegisterAllocator r = new RegisterAllocator(method);
+        r.color();
+        System.out.println("\n\nAfter~~~~~~~~\n\n");
+        System.out.println(method.toString());
         //System.out.println(l.toStringBlock());
 
 

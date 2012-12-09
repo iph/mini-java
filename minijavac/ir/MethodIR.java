@@ -76,6 +76,20 @@ public class MethodIR implements Iterable<Quadruple>{
 		return ir.get(index);
 	}
 
+    /* Will put a quad right before another one in the method.
+     *
+     */
+    public void insertQuad(int index, Quadruple ins){
+        ir.add(index, ins);
+    }
+    public void setQuad(int index, Quadruple other){
+        Quadruple temp = ir.get(index);
+        temp.result = other.result;
+        temp.arg1 = other.arg1;
+        temp.arg2 = other.arg2;
+        temp.setType(other.getType());
+    }
+
 	public ArrayList<String> getLabels(Quadruple quad) {
 		ArrayList<String> labels = new ArrayList<String>();
 		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {

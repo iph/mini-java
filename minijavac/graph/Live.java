@@ -6,7 +6,7 @@ public class Live{
     MethodIR method;
     Map<Quadruple, Node> instructionMap;
     Map<Node, Quadruple> reverseInstructionMap;
-    Map<Node, Set<String>> uses, defs, liveIn, liveOut;
+    public Map<Node, Set<String>> uses, defs, liveIn, liveOut;
 
     public Live(MethodIR meth){
         graph = new Graph();
@@ -68,12 +68,13 @@ public class Live{
                     graph.addEdge(n, other);
                     break;
                 case PARAM:
-                    // Put a block on $vX;
+                    // Put a block on $a somethin;
                     use.add(quad.arg1);
                     break;
                 case PRINT:
                 case CALL:
                     //TODO: Put blockers on the $t0-$t9 entries.
+                    def.add("$v0");
                     break;
                 case RETURN:
                     // Block the return registers.
