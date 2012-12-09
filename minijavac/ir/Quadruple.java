@@ -15,6 +15,14 @@ public class Quadruple {
 		type = t;
 	}
 
+    public Quadruple(Quadruple other){
+        operator = other.operator;
+        arg1 = other.arg1;
+        arg2 = other.arg2;
+        result = other.result;
+        type = other.getType();
+    }
+
 	public InstructionType getType() {
 		return type;
 	}

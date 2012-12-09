@@ -48,6 +48,12 @@ public class MIPSRegisterAllocator {
 	}
 
     private void updateFormalDefs(MethodIR method, MethodAttribute methodAttrs){
+        Quadruple start = new Quadruple(InstructionType.COPY);
+        start.result = "this";
+        start.arg1 = "$a0";
+
+        method.insertQuad(0, start);
+        
         for (int i = 0; i < methodAttrs.parameterListSize(); i++) {
         	if (i < 3) {
                 Quadruple q = new Quadruple(InstructionType.COPY);
