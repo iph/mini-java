@@ -89,6 +89,8 @@ public class MIPSTranslator {
 				// only main can exit like this
 				assembly.addInstruction(new Jal("_system_exit"));
 			} else {
+				int assemblySize = assembly.size();
+
 				// FIXME: uncomment this
 				//addPrologue(methodIR);
 
@@ -107,6 +109,10 @@ public class MIPSTranslator {
 				}
 				// FIXME: uncomment this
 				//addEpilogue(methodIR);
+
+				// stick the method label on the first generated instruction
+				String label = methodIR.canonicalMethodName();
+				assembly.addLabel(label, assembly.getInstruction(assemblySize));
 			}
 
 			symbolTable.endScope();
@@ -119,10 +125,7 @@ public class MIPSTranslator {
 	private void addPrologue(MethodIR methodIR) {
 		MIPSFrame frame = frameAllocator.getFrame(methodIR.canonicalMethodName());
 		// allocate space for activation frame
-		Instruction firstInstr = new Addi("$sp", "$sp", -frame.getSize());
-		assembly.addInstruction(firstInstr);
-		// slap a label on the first instruction
-		assembly.addLabel(methodIR.canonicalMethodName(), firstInstr);
+		assembly.addInstruction(new Addi("$sp", "$sp", -frame.getSize()));
 		// save the return address and caller's frame pointer
 		assembly.addInstruction(new Sw("$ra", "$sp", frame.getSize()-4));
 		assembly.addInstruction(new Sw("$fp", "$sp", frame.getSize()-8));
