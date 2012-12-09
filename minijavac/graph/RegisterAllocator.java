@@ -29,7 +29,6 @@ public class RegisterAllocator{
         live = new Live(method);
         live.computeLiveness();
         ifg = new InterferenceGraph(live);
-        System.out.println(live);
         inStack = new HashSet<String>();
         uncoloredVars = new Stack<String>();
         precoloredVars = new HashSet<String>();
