@@ -27,6 +27,11 @@ public class InterferenceGraph extends Graph{
      * */
     public InterferenceGraph(Live l){
         super();
+        Register[] tempRegs = {
+            Register.TEMP1, Register.TEMP2, Register.TEMP3, Register.TEMP4,
+            Register.TEMP5, Register.TEMP6, Register.TEMP7,
+            Register.TEMP8, Register.TEMP9, Register.TEMP10
+        };
         vars = new HashMap<String, Node>();
         inverseVars = new HashMap<Node, String>();
         moves = new HashMap<Node, Set<String>>();
@@ -37,6 +42,24 @@ public class InterferenceGraph extends Graph{
                 addInterferenceMove(l.liveOut(n), ins.arg1, ins.result);
             }else{
                 addInterferenceEdges(l.liveOut(n));
+            }
+
+            // Add interference of t-registers.
+            if(ins.getType() == InstructionType.CALL){
+                Set<String> liveAcross = new HashSet<String>();
+                Set<String> liveIn = l.liveIn(n);
+                for(String live: l.liveOut(n)){
+                    if(liveIn.contains(live)){
+                        liveAcross.add(live);
+                    }
+                }
+
+                System.out.println(liveAcross);
+                for(Register reg: tempRegs){
+                    liveAcross.add(reg.toString());
+                }
+
+                addInterferenceEdges(liveAcross);
             }
         }
     }

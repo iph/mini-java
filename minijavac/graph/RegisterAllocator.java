@@ -37,29 +37,62 @@ public class RegisterAllocator{
         potentialMoves = new HashSet<String>();
         coloredVars = new HashMap<String, Register>();
         precolor();
+        System.out.println(ifg);
         resolveMoves();
     }
 
     /* Will rewrite parameters to IR copy instructions. */
     public void rewriteParams(){
-        for(int i = 0; i < method.size(); i++){
+        int size = method.size();
+        for(int i = 0; i < size; i++){
             Quadruple quad = method.getQuad(i);
             if (quad.getType() == InstructionType.CALL){
-                interfereParams(i-1);
-                i++;
+                int shiftAmount =  interfereParams(i-1, Integer.parseInt(quad.arg2));
+                i += shiftAmount;
+                int paramsAmount = Integer.parseInt(quad.arg2);
+                if(paramsAmount > 4){
+                    Quadruple q = new Quadruple(InstructionType.COPY);
+                    String newTemp = method.nextTempVar();
+                    q.result = newTemp;
+                    q.arg1 = "" + ((paramsAmount - 4) * 4);
+                    method.insertQuad(i+1, q);
+                    q = new Quadruple(InstructionType.BINARY_ASSIGN);
+                    q.result = "$sp";
+                    q.arg1 = "$sp";
+                    q.operator = "+";
+                    q.arg2 = newTemp;
+                    method.insertQuad(i+2, q);
+                    i += 2;
+                }
             }
+            size = method.size();
         }
     }
 
     /* Figures out where to place argument */
-    public void interfereParams(int place){
+    public int interfereParams(int place, int paramsAmount){
         Register[] params = {Register.ARG1, Register.ARG2, Register.ARG3, Register.ARG4};
+        int amountShifted = 0;
         int paramsPlace = 0;
-
         while(place > 0 && method.getQuad(place).getType() == InstructionType.PARAM){
             place--;
         }
         place++;
+        if(paramsAmount > 4){
+            Quadruple q = new Quadruple(InstructionType.COPY);
+            String newTemp = method.nextTempVar();
+            q.result = newTemp;
+            q.arg1 = "-" + ((paramsAmount - 4) * 4);
+            method.insertQuad(place, q);
+            q = new Quadruple(InstructionType.BINARY_ASSIGN);
+            q.result = "$sp";
+            q.arg1 = "$sp";
+            q.arg2 = newTemp;
+            q.operator = "+";
+            method.insertQuad(place+1, q);
+            amountShifted += 2;
+        }
+        place ++;
         // We are all setup to start pushing params on.
         while(method.getQuad(place).getType() == InstructionType.PARAM){
             if(paramsPlace < 4){
@@ -70,10 +103,20 @@ public class RegisterAllocator{
                 paramsPlace++;
             }
             else{
-                //TODO : Put shit onto the stack here.
+                int storeLocation = paramsPlace - 4;
+                storeLocation *= 4;
+                Quadruple q = new Quadruple(InstructionType.STORE);
+                q.result = "$sp";
+                q.arg1 = method.getQuad(place).arg1;
+                q.arg2 = "" + storeLocation;
+                method.setQuad(place, q);
+                paramsPlace++;
+                method.setQuad(place, q);
+
             }
             place++;
         }
+        return amountShifted;
 
     }
 
