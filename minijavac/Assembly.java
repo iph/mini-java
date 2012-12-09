@@ -55,12 +55,17 @@ public abstract class Assembly {
 				String label = getLabel(instructions.get(i));
 				if (label.contains(".")) {
 					repr.append(String.format("%s:\n", label));
+					// add instruction
+					repr.append(String.format("        %s\n", instructions.get(i).toString()));
 				} else {
-					repr.append(String.format("%-7s", label + ":"));
+					repr.append(String.format("%-8s", label + ":"));
+					// add instruction
+					repr.append(String.format("%s\n", instructions.get(i).toString()));
 				}
+			} else {
+				// add instruction
+				repr.append(String.format("        %s\n", instructions.get(i).toString()));
 			}
-			// add instruction
-			repr.append(String.format("       %s\n", instructions.get(i).toString()));
 		}
 		return repr.toString();
 	}
