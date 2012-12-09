@@ -11,11 +11,17 @@ class Object {
     int d;
 
     public int Method(int x, int y) {
+        int lol;
+        lol = 1;
+        if (lol < 2)
+            b = 2;
+        else
+            b = 3;
         b = 1;
         c = 2;
         a = b + c;
         d = 4;
-    	return 0;
+    	return d;
     }
 }
 

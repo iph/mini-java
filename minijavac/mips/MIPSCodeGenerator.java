@@ -19,13 +19,13 @@ public class MIPSCodeGenerator extends CodeGenerator {
 		translator = new MIPSTranslator(symbolTable, registerAllocator, frameAllocator);
 	}
 
-	public Assembly generate() {
+	public Assembly generate(boolean optimize) {
 		// add offsets and other stuff to class vars
 		storeStorageData();
 
 		System.out.println("$$$$$$$$ Initial IR $$$$$$$$");
 		System.out.println(ir);
-		
+
 		// update IR to reflect loading and storing class vars
 		// and convert array accesses to multiple instructions
 		irTransformer.transform(ir);
