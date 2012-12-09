@@ -7,7 +7,7 @@ public class RegisterAllocator{
     public static final int K = 9;
     public static final Register[] colorable = {
         Register.TEMP1, Register.TEMP2, Register.TEMP3, Register.TEMP4,
-        Register.TEMP5, Register.TEMP5, Register.TEMP6, Register.TEMP7,
+        Register.TEMP5, Register.TEMP6, Register.TEMP7,
         Register.TEMP8, Register.TEMP9, Register.TEMP10
     };
     InterferenceGraph ifg;
@@ -28,7 +28,6 @@ public class RegisterAllocator{
     }
 
     public void color(){
-        System.out.println(ifg);
         while(inStack.size() < ifg.vars().size()){
             int addedNode = simplify();
             if(addedNode == -1){

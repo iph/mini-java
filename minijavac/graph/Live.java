@@ -68,7 +68,8 @@ public class Live{
                     graph.addEdge(n, other);
                     break;
                 case PARAM:
-                    //TODO: Put a block on $vX;
+                    // Put a block on $vX;
+                    use.add(quad.arg1);
                     break;
                 case PRINT:
                 case CALL:
