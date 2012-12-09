@@ -9,6 +9,7 @@ import java.io.*;
 import minijavac.visitor.*;
 import minijavac.syntaxtree.*;
 import minijavac.ir.IR;
+import minijavac.mips.*;
 
 public class minijavac {
 	public static void main(String[] args) {
@@ -18,8 +19,8 @@ public class minijavac {
 			System.exit(1);
 		}
 		try {
-			// Syntax check input file
-			MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileInputStream(args[0])));
+		// Syntax check input file
+		MiniJavaParser parser = new MiniJavaParser(new MiniJavaLexer(new FileInputStream(args[0])));
             // Store the root AST node from the parse
             Program program = (Program)parser.parse().value;
             if(parser.hasError){
@@ -42,8 +43,9 @@ public class minijavac {
             IR ir = irBuilder.getIR();
 
             // Generate the MIPS code!
-            CodeGenerator codeGen = new CodeGenerator(ir, symbolTable);
-            codeGen.generate();
+            CodeGenerator codeGen = new MIPSCodeGenerator(ir, symbolTable);
+            Assembly assembly = codeGen.generate();
+            System.out.println(assembly);
 		} catch (IOException e) {
 			System.err.println("ERROR: Unable to open file: " + args[0]);
 		} catch (Exception e) {

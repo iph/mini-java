@@ -1,5 +1,5 @@
-INPUT_FILE = tests/TreeVisitor.java
-OUTPUT_FILE = TreeVisitorIR.txt
+INPUT_FILE = tests/milestones/Milestone3.java
+OUTPUT_FILE = Milestone1.txt
 
 TEST_FILES = easy-test.java test.java BubbleSort.java \
 			 ir/Inheritance.java \
@@ -24,7 +24,8 @@ build_tools:
 	mv sym.java minijavac/tools/
 	jflex minijavac/tools/$(FLEX_FILE)
 build_class:
-	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac.java minijavac/ClassAttribute.java minijavac/graph/*.java
+	javac -classpath `pwd`/minijavac/:`pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/*.java minijavac/graph/*.java minijavac/ir/*.java minijavac/mips/*.java minijavac/mips/instructions/*.java
+
 build_graph:
 	javac minijavac/graph/*.java
 
@@ -45,4 +46,4 @@ save:
 	java -classpath `pwd`/minijavac/tools/java-cup-11a.jar:`pwd`/ minijavac/minijavac $(INPUT_FILE) > $(OUTPUT_FILE)
 
 clean:
-	rm minijavac/*.class  minijavac/tools/*.class minijavac/syntaxtree/*.class minijavac/visitor/*.class minijavac/ir/*.class minijavac/graph/*.class
+	rm minijavac/*.class  minijavac/tools/*.class minijavac/syntaxtree/*.class minijavac/visitor/*.class minijavac/ir/*.class minijavac/graph/*.class minijavac/mips/*.class minijavac/mips/instructions/*.class

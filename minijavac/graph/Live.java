@@ -71,7 +71,6 @@ public class Live{
                     // Put a block on $a somethin;
                     use.add(quad.arg1);
                     break;
-                case PRINT:
                 case CALL:
                     //TODO: Put blockers on the $t0-$t9 entries.
                     def.add("$v0");

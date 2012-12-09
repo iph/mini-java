@@ -3,9 +3,9 @@ package minijavac.ir;
 import java.util.*;
 import minijavac.SymbolTable;
 
-// TODO: should newLabel() be static or per-instance?
 public class MethodIR implements Iterable<Quadruple>{
-	private String canonicalMethodName;
+	private String className;
+	private String methodName;
 	private SymbolTable symbolTable;
 	private ArrayList<Quadruple> ir;
 	private HashMap<String, Quadruple> labelLoc;
@@ -13,12 +13,25 @@ public class MethodIR implements Iterable<Quadruple>{
 	private int lastTempId = 0;
 	private static int lastLabelId = 0;
 
-	public MethodIR(String methodName, SymbolTable symTable) {
-		canonicalMethodName = methodName;
+	public MethodIR(String clsName, String methName, SymbolTable symTable) {
+		className = clsName;
+		methodName = methName;
 		symbolTable = symTable;
 		ir = new ArrayList<Quadruple>();
 		labelLoc = new HashMap<String, Quadruple>();
 		unresolvedLabels = new HashMap<String, Integer>();
+	}
+
+	public String canonicalMethodName() {
+		return className + "." + methodName;
+	}
+
+	public String getClassName() {
+		return className;
+	}
+
+	public String getMethodName() {
+		return methodName;
 	}
 
 	public String nextTempVar() {
@@ -37,7 +50,28 @@ public class MethodIR implements Iterable<Quadruple>{
 		ir.add(quad);
 	}
 
-    public Iterator<Quadruple> iterator(){
+	public void replaceQuadAt(int index, Quadruple quad) {
+		ArrayList<Quadruple> quads = new ArrayList<Quadruple>();
+		quads.add(quad);
+		replaceQuadAt(index, quads);
+	}
+
+	public void replaceQuadAt(int index, ArrayList<Quadruple> quads) {
+		// if the quad we're replacing had a label, update the label to point
+		// to the first quad in our list
+		if (index > 0 && hasLabel(getQuad(index))) {
+			String label = getLabel(getQuad(index));
+			addLabel(label, quads.get(0));
+		}
+
+		// replace the quad at index and insert the others after it
+		ir.set(index, quads.get(0));
+		for (int i = 1; i < quads.size(); i++) {
+			ir.add(index + i, quads.get(i));
+		}
+	}
+
+    public Iterator<Quadruple> iterator() {
         return ir.iterator();
     }
 
@@ -50,9 +84,28 @@ public class MethodIR implements Iterable<Quadruple>{
 	}
 
     public Quadruple getQuadFromLabel(String label){
+    	// the first quad has a special label not stored in our hash
+    	if (canonicalMethodName().equals(label)) {
+    		return getQuad(0);
+    	}
+
         return labelLoc.get(label);
     }
 
+	public boolean hasLabel(Quadruple quad) {
+		return getLabel(quad) != null;
+	}
+
+	public String getLabel(Quadruple quad) {
+		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
+			if (quad == entry.getValue()) {
+				return entry.getKey();
+			}
+		}
+		return null;
+	}
+
+    // FIXME: rename this method... it's not really backpatching
 	public void backpatch() {
 		for (Map.Entry<String, Integer> entry : unresolvedLabels.entrySet()) {
 			String label = entry.getKey();
@@ -68,6 +121,33 @@ public class MethodIR implements Iterable<Quadruple>{
 			} else {
 				// uhhhh, something bad happened.
 				System.err.println("Backpatching failed");
+			}
+		}
+
+		// make a final pass through the labels to find any
+		// that point to the same quad. remove the 'duplicate'
+		// and adjust instructions that reference it
+		for (Quadruple quad : this) {
+			ArrayList<String> labels = getLabels(quad);
+			if (labels.size() > 1) {
+				// we have more than one label for this quad, so get rid
+				// of all but the first
+				String label = labels.get(0);
+				for (int i = 1; i < labels.size(); i++) {
+					String unwantedLabel = labels.get(i);
+					labelLoc.remove(unwantedLabel);
+					// update all references to the 'new' label
+					for (int j = 0; j < ir.size(); j++) {
+						switch (ir.get(j).getType()) {
+						case JUMP:
+						case COND_JUMP:
+							if (ir.get(j).arg1.equals(unwantedLabel)) {
+								ir.get(j).arg1 = label;
+							}
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -102,7 +182,8 @@ public class MethodIR implements Iterable<Quadruple>{
 
 	public String toString() {
 		// add the method's label
-		String repr = canonicalMethodName + ":\n";
+		StringBuilder repr = new StringBuilder();
+		repr.append(canonicalMethodName() + ":\n");
 		// add the method's instructions
 		for (int i = 0; i < ir.size(); i++) {
 			// add instruction labels if it has them
@@ -110,22 +191,22 @@ public class MethodIR implements Iterable<Quadruple>{
 			boolean hasLabel = labels.size() > 0 ? true : false;
 			for (int j = 0; j < labels.size(); j++) {
 				if (j == labels.size()-1) {
-					repr += String.format("%-7s", labels.get(j) + ":");
+					repr.append(String.format("%-7s", labels.get(j) + ":"));
 				} else {
-					repr += String.format("%s:\n", labels.get(j));
+					repr.append(String.format("%s:\n", labels.get(j)));
 				}
 			}
 
 			if (hasLabel) {
 				// add instruction
-				repr += String.format("%s\n", ir.get(i).toString());
+				repr.append(String.format("%s\n", ir.get(i).toString()));
 			} else {
 				// add instruction
-				repr += String.format("       %s\n", ir.get(i).toString());
+				repr.append(String.format("       %s\n", ir.get(i).toString()));
 			}
 		}
 
-		return repr;
+		return repr.toString();
 	}
 
 	public int size() {

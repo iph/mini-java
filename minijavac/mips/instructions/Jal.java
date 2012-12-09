@@ -1,6 +1,8 @@
-package minijavac.mips;
+package minijavac.mips.instructions;
 
-public class Jal extends Instruction{
+import minijavac.mips.*;
+
+public class Jal extends MIPSInstruction{
     public Jal(String l){
         label = l;
     }

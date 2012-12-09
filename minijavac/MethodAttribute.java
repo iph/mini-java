@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.LinkedHashMap;
 
-class MethodAttribute extends Attribute {
+public class MethodAttribute extends Attribute {
 	private String returnType;
 	private Map<String, VariableAttribute> parameterList;
     private HashMap<String, VariableAttribute> vars;

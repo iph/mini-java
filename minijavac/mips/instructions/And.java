@@ -1,6 +1,8 @@
-package minijavac.mips;
+package minijavac.mips.instructions;
 
-public class And extends Instruction{
+import minijavac.mips.*;
+
+public class And extends MIPSInstruction{
     public And(String registerToStore, String register1, String register2){
         rd = registerToStore;
         rs = register1;

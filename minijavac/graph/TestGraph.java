@@ -4,8 +4,9 @@ import minijavac.ir.*;
 public class TestGraph{
 
     public static void main(String[] args){
-        MethodIR method = new MethodIR("herp", null);
+        MethodIR method = new MethodIR("herp", "derp", null);
         Quadruple[] quads = new Quadruple[11];
+
         quads[0] = new Quadruple(InstructionType.UNARY_ASSIGN);
         quads[0].result = "x";
         quads[0].arg1 = "0";

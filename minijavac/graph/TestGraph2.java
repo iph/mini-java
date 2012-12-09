@@ -5,7 +5,7 @@ import minijavac.graph.*;
 public class TestGraph2{
 
     public static void main(String[] args){
-        MethodIR method = new MethodIR("herp", null);
+        MethodIR method = new MethodIR("herp", "derp", null);
         Quadruple[] quads = new Quadruple[10];
         quads[0] = new Quadruple(InstructionType.PARAM);
         quads[0].arg1 = "a";
