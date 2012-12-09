@@ -21,10 +21,11 @@ public class MIPSRegisterAllocator {
 
 		for (int i = 0; i < ir.size(); i++) {
 			MethodIR methodIR = ir.getMethodIR(i);
+			String canonName = methodIR.canonicalMethodName();
 			// graph color the method's ir to find optimal register use
-			RegisterAllocator regAlloc = new RegisterAllocator(methodIR);
+			RegisterAllocator regAlloc = new RegisterAllocator(methodIR, frameAllocator.getFrame(canonName));
 			regAlloc.color();
-			regAllocators.put(methodIR.canonicalMethodName(), regAlloc);
+			regAllocators.put(canonName, regAlloc);
 		}
 	}
 
