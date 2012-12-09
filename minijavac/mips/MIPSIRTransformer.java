@@ -51,6 +51,7 @@ public class MIPSIRTransformer {
 			updateNewObjects(methodIR);
 
 			symbolTable.endScope();
+			symbolTable.endScope();
 		}
 	}
 
@@ -117,17 +118,26 @@ public class MIPSIRTransformer {
 			if (vars.size() > 0) {
 				ArrayList<Quadruple> newQuads = new ArrayList<Quadruple>();
 				for (int j = 0; j < vars.size(); j++) {
+					String tempVar = methodIR.nextTempVar();
+					curMethod.addVariable(tempVar, new VariableAttribute(tempVar, curClass.getIdentifier()));
+					
+					Quadruple thisQuad = new Quadruple(InstructionType.COPY);
+					thisQuad.operator = ":=";
+					thisQuad.result = tempVar;
+					thisQuad.arg1 = "this";
+
 					VariableAttribute var = (VariableAttribute)vars.get(j);
 					// add a quad so we can access the member var
 					Quadruple loadQuad = new Quadruple(InstructionType.LOAD);
 					loadQuad.operator = "load";
 					loadQuad.result = var.getIdentifier();
-					loadQuad.arg1 = "this";
+					loadQuad.arg1 = tempVar;
 					loadQuad.arg2 = ""+var.getStorage().getOffset();
 
+					newQuads.add(thisQuad);
 					newQuads.add(loadQuad);
 				}
-				// add the old quad second
+				// add the old quad (that uses the class var) last
 				newQuads.add(quad);
 
 				// update the method IR to reflect this
@@ -164,22 +174,31 @@ public class MIPSIRTransformer {
 			// instruction added?
 			if (var != null) {
 				ArrayList<Quadruple> newQuads = new ArrayList<Quadruple>();
-				// create a temp var that holds the result of the instruction
+				// create a temp var that now holds the result of the instruction
 				// instead of our class var
-				String tempVar = methodIR.nextTempVar();
-				curMethod.addVariable(tempVar, new VariableAttribute(tempVar, var.getType()));
-				// update the old quad to use the temp
-				quad.result = tempVar;
+				String tempVar1 = methodIR.nextTempVar();
+				curMethod.addVariable(tempVar1, new VariableAttribute(tempVar1, var.getType()));
+				// update the old quad to store the result in temp var instead of the class var
+				quad.result = tempVar1;
+
+				String tempVar2 = methodIR.nextTempVar();
+				curMethod.addVariable(tempVar2, new VariableAttribute(tempVar2, curClass.getIdentifier()));
+
+				Quadruple thisQuad = new Quadruple(InstructionType.COPY);
+				thisQuad.operator = ":=";
+				thisQuad.result = tempVar2;
+				thisQuad.arg1 = "this";
 
 				// add a quad so we can store at the member var location
 				Quadruple storeQuad = new Quadruple(InstructionType.STORE);
 				storeQuad.operator = "store";
-				storeQuad.result = "this";
-				storeQuad.arg1 = tempVar;
+				storeQuad.result = tempVar2;
+				storeQuad.arg1 = tempVar1;
 				storeQuad.arg2 = ""+var.getStorage().getOffset();
 
 				// add the old quad we updated, first
 				newQuads.add(quad);
+				newQuads.add(thisQuad);
 				// add the quad storing the result from the first
 				newQuads.add(storeQuad);
 
