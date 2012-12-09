@@ -13,10 +13,8 @@ public class RegisterAllocator{
         Register.SAVE5, Register.SAVE6, Register.SAVE7, Register.SAVE8
     };
     InterferenceGraph ifg;
-    Set<String> inStack;
+    Set<String> inStack, precoloredVars, precolorsFound, potentialMoves;
     Stack<String> uncoloredVars;
-    Set<String> precoloredVars;
-    Set<String> precolorsFound;
     Live live;
     Map<String, Register> coloredVars;
     MethodIR method;
@@ -24,7 +22,6 @@ public class RegisterAllocator{
 
     public RegisterAllocator(MethodIR method){
         this.method = method;
-        System.out.println(method);
         rewriteParams();
         live = new Live(method);
         live.computeLiveness();
@@ -33,10 +30,15 @@ public class RegisterAllocator{
         uncoloredVars = new Stack<String>();
         precoloredVars = new HashSet<String>();
         precolorsFound = new HashSet<String>();
+        potentialMoves = new HashSet<String>();
         coloredVars = new HashMap<String, Register>();
+        System.out.println(method);
         precolor();
+        resolveMoves();
+
     }
 
+    /* Will rewrite parameters to IR copy instructions. */
     public void rewriteParams(){
         for(int i = 0; i < method.size(); i++){
             Quadruple quad = method.getQuad(i);
@@ -46,6 +48,8 @@ public class RegisterAllocator{
             }
         }
     }
+
+    /* Figures out where to place argument */
     public void interfereParams(int place){
         Register[] params = {Register.ARG1, Register.ARG2, Register.ARG3, Register.ARG4};
         int paramsPlace = 0;
@@ -70,18 +74,48 @@ public class RegisterAllocator{
         }
 
     }
+
+    /* Adds all starting registers to the precolored list.
+     *
+     * If any arg or result is names after a register, it will automatically be precolored
+     * and unable to be simplified.
+     */
     public void precolor(){
         for(Register reg: Register.values()){
            precoloredVars.add(reg.toString());
            coloredVars.put(reg.toString(), reg);
         }
     }
+
+    private void resolveMoves(){
+        for(String var: ifg.vars()){
+           Set<String> moves = ifg.moves(var);
+           for(String other: moves){
+               //If the two interfere, remove the bond.
+                if(ifg.hasNeighbor(var, other)){
+                    ifg.removeMove(var, other);
+                    ifg.removeMove(other, var);
+                }
+           }
+        }
+        for(String var: ifg.vars()){
+           Set<String> moves = ifg.moves(var);
+           if(moves.size() > 0){
+               potentialMoves.add(var);
+           }
+        }
+
+
+    }
+
     public void color(){
         while(inStack.size() + precolorsFound.size() < ifg.vars().size()){
             int addedNode = simplify();
             if(addedNode == -1){
-                System.out.println("SPILL!!!");
-                return;
+                boolean coal = coalesce();
+                if(!coal){
+                    System.out.println("SPILL!");
+                }
             }
         }
 
@@ -92,20 +126,86 @@ public class RegisterAllocator{
         rewriteVariables();
     }
 
-    private void rewriteVariables(){
-        for(Quadruple quad: method){
-            if(coloredVars.containsKey(quad.result)){
-                quad.result = coloredVars.get(quad.result).toString();
-            }
-            if(coloredVars.containsKey(quad.arg1)){
-                quad.arg1 = coloredVars.get(quad.arg1).toString();
-            }
-            if(coloredVars.containsKey(quad.arg2)){
-                quad.arg2 = coloredVars.get(quad.arg2).toString();
+    private boolean coalesce(){
+            System.out.println(potentialMoves);
+        for(String potential: potentialMoves){
+            System.out.println("Potential: " + potential);
+            for(Object pB: ifg.moves(potential).toArray()){
+                String potentialB = (String) pB;
+                System.out.println("Other: " + potentialB);
+                if(precoloredVars.contains(potentialB)){
+                    continue;
+                }
+                boolean georgeProperty = true;
+                for(String otherNeighbor: ifg.adjacent(potential)){
+                    if(!ifg.hasNeighbor(potentialB, otherNeighbor) && kNeighbors(otherNeighbor) >= K){
+                        georgeProperty = false;
+                    }
+                }
+
+                if(georgeProperty){
+                    updateVar(potential, potentialB);
+                    return true;
+                }
+                else{
+                    continue;
+                }
             }
         }
+        return collapseNode();
     }
-    /* simplify will attempt to find a node of less than k degree and add to the stack.
+
+    private boolean collapseNode(){
+        int leastSignificant = Integer.MAX_VALUE;
+        String blackHole = null;
+        for(String var: potentialMoves){
+            int currK = kNeighbors(var);
+            if(currK < leastSignificant){
+                leastSignificant = currK;
+                blackHole = var;
+            }
+        }
+        if(blackHole == null){
+            return false;
+        }
+        else{
+            ifg.removeAllMoves(blackHole);
+            potentialMoves.remove(blackHole);
+            return true;
+        }
+    }
+    private void updateVar(String keep, String toRemove){
+        //Update all interference edges
+        for(String newConnection: ifg.adjacent(toRemove)){
+            ifg.addEdge(keep, newConnection);
+            ifg.removeEdge(toRemove, newConnection);
+        }
+        //TODO: Update quad to completely remove instruction.
+        for(Quadruple quad: method){
+            if(quad.result.equals(toRemove)){
+                quad.result = keep;
+            }
+            if(quad.arg1.equals(toRemove)){
+                quad.arg1 = keep;
+            }
+            if(quad.arg2.equals(toRemove)){
+                quad.arg2 = keep;
+            }
+        }
+
+        ifg.removeMove(keep, toRemove);
+        ifg.removeMove(toRemove, keep);
+        Set<String> toRemoveMoves = ifg.moves(toRemove);
+        for(String newConnection: toRemoveMoves){
+            ifg.addMove(keep, newConnection);
+        }
+        ifg.removeAllMoves(toRemove);
+        potentialMoves.remove(toRemove);
+        //Update moves to properly reflect future updates.
+
+    }
+
+   /* simplify will attempt to find a node of less than k degree and add to the stack.
      *
      * Returns:
      *      1: If successful
@@ -117,6 +217,9 @@ public class RegisterAllocator{
         for(String var: ifg.vars()){
             if(precoloredVars.contains(var)){
                 precolorsFound.add(var);
+                continue;
+            }
+            if(potentialMoves.contains(var)){
                 continue;
             }
             int currK = kNeighbors(var);
@@ -133,17 +236,6 @@ public class RegisterAllocator{
             return 1;
         }else{
             return -1;
-        }
-    }
-
-    private void select(){
-        String var = uncoloredVars.pop();
-        for(int i = 0; i < colorable.length; i++){
-            Register color = colorable[i];
-            if(!neighborHasColor(var, color)){
-                coloredVars.put(var, color);
-                break;
-            }
         }
     }
     /* Checks to see whether a variable can be colored a certain color.
@@ -172,8 +264,42 @@ public class RegisterAllocator{
         }
         return count;
     }
-    public ArrayList<Quadruple> RegisterAllocatedInstructions(){
-        return null;
+
+
+    private void select(){
+        String var = uncoloredVars.pop();
+        for(int i = 0; i < colorable.length; i++){
+            Register color = colorable[i];
+            if(!neighborHasColor(var, color)){
+                coloredVars.put(var, color);
+                break;
+            }
+        }
+    }
+    private void rewriteVariables(){
+        for(Quadruple quad: method){
+            if(coloredVars.containsKey(quad.result)){
+                quad.result = coloredVars.get(quad.result).toString();
+            }
+            if(coloredVars.containsKey(quad.arg1)){
+                quad.arg1 = coloredVars.get(quad.arg1).toString();
+            }
+            if(coloredVars.containsKey(quad.arg2)){
+                quad.arg2 = coloredVars.get(quad.arg2).toString();
+            }
+        }
+        int size = method.size();
+        for(int i = 0; i < size; i++){
+            Quadruple quad = method.getQuad(i);
+
+            if(quad.getType() == InstructionType.COPY){
+                if(quad.result.equals(quad.arg1)){
+                   method.remove(i);
+                   i--;
+                }
+            }
+            size = method.size();
+        }
     }
 
 }

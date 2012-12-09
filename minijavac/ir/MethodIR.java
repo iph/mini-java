@@ -96,6 +96,14 @@ public class MethodIR implements Iterable<Quadruple>{
 		return getLabel(quad) != null;
 	}
 
+    public void remove(int index){
+        if(hasLabel(getQuad(index))){
+            for(String label: getLabels(getQuad(index))){
+                addLabel(label, getQuad(index+1));
+            }
+        }
+        ir.remove(index);
+    }
 	public String getLabel(Quadruple quad) {
 		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
 			if (quad == entry.getValue()) {
