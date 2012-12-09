@@ -78,17 +78,36 @@ public class Live{
                     break;
                 case RETURN:
                     // Block the return registers.
-                    n = instructionMap.get(quad);
                     use.add(quad.arg1);
                     break;
                 //TODO: Milestone 9 problems.
-                /*
                 case ARRAY_ASSIGN:
+                    def.add(quad.result);
+                    if(!isInt(quad.arg2))
+                        use.add(quad.arg2);
+                    if(!isInt(quad.arg1))
+                        use.add(quad.arg1);
+                    break;
                 case INDEXED_ASSIGN:
+                    def.add(quad.result);
+                    use.add(quad.arg1);
+                    if(!isInt(quad.arg2)){
+                        use.add(quad.arg2);
+                    }
+                    break;
                 case NEW:
+                    def.add(quad.result);
+                    break;
                 case NEW_ARRAY:
+                    def.add(quad.result);
+                    if(!isInt(quad.arg2)){
+                        use.add(quad.arg2);
+                    }
+                    break;
                 case LENGTH:
-                */
+                    def.add(quad.result);
+                    use.add(quad.arg1);
+                    break;
                 default:
                     break;
             }

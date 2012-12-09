@@ -69,17 +69,6 @@ public class RegisterAllocator{
             place++;
         }
 
-        Quadruple call = method.getQuad(place);
-        if(paramsPlace < 4){
-            Quadruple q = new Quadruple(InstructionType.COPY);
-            q.result = params[paramsPlace].toString();
-            q.arg1 = call.arg2;
-            method.insertQuad(place, q);
-        }
-        else{
-            //TODO Put stack shit here as well!
-        }
-
     }
     public void precolor(){
         for(Register reg: Register.values()){
