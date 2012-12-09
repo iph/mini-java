@@ -167,10 +167,15 @@ public class MethodIR implements Iterable<Quadruple>{
     /* Will put a quad right before another one in the method.
      *
      */
-    public void insertQuad(int index, Quadruple ins){
-        ir.add(index, ins);
+    public void insertQuad(int index, Quadruple ins) {
+        ArrayList<Quadruple> newQuads = new ArrayList<Quadruple>();
+        Quadruple oldQuad = getQuad(index);
+        newQuads.add(ins);
+        newQuads.add(oldQuad);
+        replaceQuadAt(index, newQuads);
     }
-    public void setQuad(int index, Quadruple other){
+
+    public void setQuad(int index, Quadruple other) {
         Quadruple temp = ir.get(index);
         temp.result = other.result;
         temp.arg1 = other.arg1;

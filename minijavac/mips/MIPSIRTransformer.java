@@ -36,7 +36,6 @@ public class MIPSIRTransformer {
 			klass.getInMyScope(symbolTable);
 			symbolTable.startScope();
 			MethodAttribute method = klass.getMethod(methodIR.getMethodName());
-            updateFormalDefs(methodIR, method);
 			method.getInMyScope(symbolTable);
 
 			curClass = klass;
@@ -56,17 +55,6 @@ public class MIPSIRTransformer {
 		}
 	}
 
-    private void updateFormalDefs(MethodIR method, MethodAttribute methodAttrs){
-        for(int i = 0; i < methodAttrs.parameterListSize(); i++){
-            if( i < 4){
-                Quadruple q = new Quadruple(InstructionType.COPY);
-                q.result = methodAttrs.getParameter(i).getIdentifier();
-                q.arg1 = "$a" + (i + 1);
-
-                method.insertQuad(0, q);
-            }
-        }
-    }
 	private boolean isClassVar(String identifier) {
 		Object var = symbolTable.get(identifier);
 		return (var != null
