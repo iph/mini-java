@@ -38,6 +38,14 @@ public class MIPSIRTransformer {
 		}
 	}
 
+	private boolean isClassVar(String identifier) {
+		Object var = symbolTable.get(identifier);
+		return (var != null 
+				&& var instanceof VariableAttribute 
+				&& !curMethod.hasVariable(identifier)
+				&& !curMethod.hasParameter(identifier));
+	}
+
 	// TODO: if there are multiple instructions referencing the same class
 	//       var, we probably shouldn't do a load instruction each time.
 	//
@@ -53,47 +61,37 @@ public class MIPSIRTransformer {
 
 			switch (quad.getType()) {
 			case BINARY_ASSIGN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute 
-					&& !curMethod.hasVariable(quad.arg1))
+				if (isClassVar(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
-				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg1))
+				if (isClassVar(quad.arg2))
 					vars.add((VariableAttribute)arg2Symbol);
 				break;
 			case UNARY_ASSIGN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg1))
+				if (isClassVar(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
 				break;
 			case COPY:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg1))
+				if (isClassVar(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
 				break;
 			case RETURN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg1))
+				if (isClassVar(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
 				break;
 			case ARRAY_ASSIGN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg1))
+				if (isClassVar(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
-				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg2))
+				if (isClassVar(quad.arg2))
 					vars.add((VariableAttribute)arg2Symbol);
 				break;
 			case INDEXED_ASSIGN:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg1))
+				if (isClassVar(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
-				if (arg2Symbol != null && arg2Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg2))
+				if (isClassVar(quad.arg2))
 					vars.add((VariableAttribute)arg2Symbol);
 				break;
 			case LENGTH:
-				if (arg1Symbol != null && arg1Symbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.arg1))
+				if (isClassVar(quad.arg1))
 					vars.add((VariableAttribute)arg1Symbol);
 				break;
 			}
@@ -141,8 +139,7 @@ public class MIPSIRTransformer {
 			case NEW:
 			case NEW_ARRAY:
 			case LENGTH:
-				if (resultSymbol != null && resultSymbol instanceof VariableAttribute
-					&& !curMethod.hasVariable(quad.result))
+				if (isClassVar(quad.result))
 					var = (VariableAttribute)resultSymbol;
 				break;
 			}
