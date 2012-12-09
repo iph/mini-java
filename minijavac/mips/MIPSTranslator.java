@@ -11,6 +11,7 @@ public class MIPSTranslator {
 	private MIPSFrameAllocator frameAllocator;
 	private ClassAttribute curClass;
 	private MethodAttribute curMethod;
+	private MethodIR curMethodIR;
 	private HashMap<String, ClassAttribute> classes;
 	private Assembly assembly;
 
@@ -20,6 +21,7 @@ public class MIPSTranslator {
 		frameAllocator = frameAlloc;
 		curClass = null;
 		curMethod = null;
+		curMethodIR = null;
 		storeClasses();
 		assembly = null;
 	}
@@ -60,6 +62,7 @@ public class MIPSTranslator {
 
 			curClass = klass;
 			curMethod = method;
+			curMethodIR = methodIR;
 
 			boolean inMain = curMethod.getIdentifier().equals("main") ? true : false;
 
@@ -67,9 +70,18 @@ public class MIPSTranslator {
 				// this should be 0, but just to be safe in case we had globals..
 				int assemblySize = assembly.size();
 
+				int lastAssemblySize = assembly.size();
 				for (int j = 0; j < methodIR.size(); j++) {
 					Quadruple quad = methodIR.getQuad(j);
+					// generate mips code
 					translateQuad(quad);
+
+					if (methodIR.hasLabel(quad)) {
+						// if the quad had a label, assign that label
+						// to the first instruction it generated
+						assembly.addLabel(methodIR.getLabel(quad), assembly.getInstruction(lastAssemblySize))
+					}
+					lastAssemblySize = assembly.size();
 				}
 
 				// stick the method label on the first generated instruction
@@ -80,9 +92,18 @@ public class MIPSTranslator {
 			} else {
 				addPrologue(methodIR);
 
+				int lastAssemblySize = assembly.size();
 				for (int j = 0; j < methodIR.size(); j++) {
 					Quadruple quad = methodIR.getQuad(j);
+					// generate mips code
 					translateQuad(quad);
+
+					if (methodIR.hasLabel(quad)) {
+						// if the quad had a label, assign that label
+						// to the first instruction it generated
+						assembly.addLabel(methodIR.getLabel(quad), assembly.getInstruction(lastAssemblySize))
+					}
+					lastAssemblySize = assembly.size();
 				}
 
 				addEpilogue(methodIR);
@@ -113,7 +134,11 @@ public class MIPSTranslator {
 	private void addEpilogue(MethodIR methodIR) {
 		MIPSFrame frame = frameAllocator.getFrame(methodIR.canonicalMethodName());
 		// update return address to what it was
-		assembly.addInstruction(new Lw("$ra", "$sp", frame.getSize()-4));
+		Instruction firstInstr = new Lw("$ra", "$sp", frame.getSize()-4);
+		assembly.addInstruction(firstInstr);
+		// slap a label on the first instruction so we can jump to the
+		// epilogue if needed (early return)
+		assembly.addLabel(methodIR.canonicalMethodName() + "_epilogue", firstInstr);
 		// update frame pointer to what it was
 		assembly.addInstruction(new Lw("$fp", "$sp", frame.getSize()-8));
 		// deallocate activation frame
@@ -187,18 +212,36 @@ public class MIPSTranslator {
 	}
 
 	private void translateUnaryAssign(Quadruple quad) {
+		if (quad.operator.equals("!")) {
+			assembly.addInstruction(new Nor(quad.result, quad.arg1, quad.arg1));
+		}
 	}
 
 	private void translateCopy(Quadruple quad) {
-
+		if (quad.arg1.equals("this")) {
+			assembly.addInstruction(new Move(quad.result, "$a0"));
+		} else if (quad.arg1.equals("true")) {
+			assembly.addInstruction(new Li(quad.result, -1));
+		} else if (quad.arg1.equals("false")) {
+			assembly.addInstruction(new Li(quad.result, 0));
+		} else if (isInt(quad.arg1)) {
+			assembly.addInstruction(new Li(quad.result, quad.arg1));
+		} else {
+			// must be a register
+			assembly.addInstruction(new Move(quad.result, quad.arg1));
+		}
 	}
 
 	private void translateJump(Quadruple quad) {
+		assembly.addInstruction(new Jump(quad.arg1));
 	}
 
 	private void translateConditionalJump(Quadruple quad) {
+		assembly.addInstruction(new Bne(quad.arg2, "$zero", quad.arg1));
 	}
 
+	// TODO
+	// Old code below
 	private void translateParam(Quadruple quad) {
 		/*
 		String paramReg = regAllocator.getParamRegister();
@@ -213,40 +256,20 @@ public class MIPSTranslator {
 	}
 
 	private void translateCall(Quadruple quad) {
-		/*
 		String fullMethodName = quad.arg1;
 		if (fullMethodName.equals("System.out.println")) {
 			assembly.addInstruction(new Jal("_system_out_println"));
-			return instructions;
+			return;
 		}
 
-		String resultReg = regAllocator.getTempRegister();
-
-		String className = fullMethodName.split("\\.")[0];
-		String methodName = fullMethodName.split("\\.")[1];
-		MethodAttribute method = findMethod(className, methodName);
-
 		assembly.addInstruction(new Jal(fullMethodName));
-		assembly.addInstruction(new Move(resultReg, method.getReturnRegister()));
-		// store the register loc of result in the symbol table
-		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
-		var.setRegister(resultReg);
-		*/
+		assembly.addInstruction(new Move(quad.result, "$v0"));
 	}
 
 	private void translateReturn(Quadruple quad) {
-		/*
-		String returnReg = regAllocator.getReturnRegister();
-
-		if (isInt(quad.arg1)) {
-			assembly.addInstruction(new Li(returnReg, Integer.parseInt(quad.arg1)));
-		} else if (symbolTable.get(quad.arg1) instanceof VariableAttribute) {
-			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
-			assembly.addInstruction(new Move(returnReg, var.getRegister()));
-		}
-
-		curMethod.setReturnRegister(returnReg);
-		*/
+		assembly.addInstruction(new Move("$v0", quad.arg1));
+		// TODO: account for early returns even though they don't exist?
+		//assembly.addInstruction(new Jump(curMethodIR.canonicalMethodName() + "_epilogue"));
 	}
 
 	private void translateArrayAssign(Quadruple quad) {

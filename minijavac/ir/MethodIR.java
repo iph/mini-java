@@ -97,11 +97,6 @@ public class MethodIR implements Iterable<Quadruple>{
 	}
 
 	public String getLabel(Quadruple quad) {
-		// the first quad has a special label not stored in our hash
-		if (quad == getQuad(0)) {
-			return canonicalMethodName();
-		}
-
 		for (Map.Entry<String, Quadruple> entry : labelLoc.entrySet()) {
 			if (quad == entry.getValue()) {
 				return entry.getKey();
