@@ -75,6 +75,10 @@ public class Live{
                     //TODO: Put blockers on the $t0-$t9 entries.
                     def.add(quad.result);
                     def.add("$v0");
+                    use.add("$a0");
+                    use.add("$a1");
+                    use.add("$a2");
+                    use.add("$a3");
                     break;
                 case RETURN:
                     // Block the return registers.

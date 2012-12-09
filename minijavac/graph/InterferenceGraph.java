@@ -1,6 +1,7 @@
 package minijavac.graph;
 import java.util.*;
 import minijavac.ir.*;
+import minijavac.Register;
 
 public class InterferenceGraph extends Graph{
     private Map<String, Node> vars;
@@ -32,12 +33,21 @@ public class InterferenceGraph extends Graph{
         for(Node n: l.nodes()){
             addInterferenceEdges(l.liveIn(n));
             Quadruple ins = l.getInstruction(n);
-            if(ins.getType() == InstructionType.COPY && !isInt(ins.arg1)){
+            if(ins.getType() == InstructionType.COPY && !isInt(ins.arg1) && !isPreAllocated(ins.result)){
                 addInterferenceMove(l.liveOut(n), ins.arg1, ins.result);
             }else{
                 addInterferenceEdges(l.liveOut(n));
             }
         }
+    }
+
+    private boolean isPreAllocated(String res){
+        for(Register reg: Register.values()){
+            if(reg.toString().equals(res)){
+                return true;
+            }
+        }
+        return false;
     }
 
     /* Uses the liveness set to create interference edges.
@@ -60,6 +70,30 @@ public class InterferenceGraph extends Graph{
         }
     }
 
+    public Set<String> moves(String var){
+        return moves.get(vars.get(var));
+    }
+
+    public void removeAllMoves(String var){
+        for(String other: moves.get(vars.get(var))){
+            moves.get(vars.get(other)).remove(var);
+        }
+        moves.put(vars.get(var), new HashSet<String>());
+    }
+
+    public void removeMove(String var, String otherVar){
+        Set<String> set = moves.get(vars.get(var));
+        set.remove(otherVar);
+    }
+
+    public void addMove(String var, String otherVar){
+        Set<String> moveSet = moves.get(vars.get(var));
+        moveSet.add(otherVar);
+        moveSet = moves.get(vars.get(otherVar));
+        moveSet.add(var);
+
+    }
+
     private boolean isInt(String possibleInt){
         try{
             Integer.parseInt(possibleInt);
@@ -69,7 +103,12 @@ public class InterferenceGraph extends Graph{
         }
     }
 
-
+    public boolean hasNeighbor(String var, String potentialNeighbor){
+        return adjacent(var).contains(potentialNeighbor);
+    }
+    public boolean hasMoveNodes(String var){
+        return moves.get(vars.get(var)).size() > 0;
+    }
 
     /* Same as addInterferenceEdges except deals with a move variable. */
     private void addInterferenceMove(Set<String> set, String move, String moveTo){
