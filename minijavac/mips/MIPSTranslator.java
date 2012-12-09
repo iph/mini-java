@@ -92,7 +92,7 @@ public class MIPSTranslator {
 				int assemblySize = assembly.size();
 
 				// FIXME: uncomment this
-				//addPrologue(methodIR);
+				addPrologue(methodIR);
 
 				int lastAssemblySize = assembly.size();
 				for (int j = 0; j < methodIR.size(); j++) {
@@ -108,11 +108,11 @@ public class MIPSTranslator {
 					lastAssemblySize = assembly.size();
 				}
 				// FIXME: uncomment this
-				//addEpilogue(methodIR);
+				addEpilogue(methodIR);
 
 				// return to caller
 				assembly.addInstruction(new Jr("$ra"));
-		
+
 				// stick the method label on the first generated instruction
 				String label = methodIR.canonicalMethodName();
 				assembly.addLabel(label, assembly.getInstruction(assemblySize));
