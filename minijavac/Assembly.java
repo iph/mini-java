@@ -8,6 +8,7 @@ public abstract class Assembly {
 
 	public Assembly() {
 		instructions = new ArrayList<Instruction>();
+		labelLoc = new HashMap<String, Instruction>();
 	}
 
 	public void addInstructions(ArrayList<Instruction> instructions) {

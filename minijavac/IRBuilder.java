@@ -345,17 +345,21 @@ public class IRBuilder implements IRVisitor {
 	}
 
 	public String visit(Call n) {
-  		Quadruple ins = new Quadruple(InstructionType.PARAM);
-  		ins.operator = "param";
-  		ins.arg1 = n.e.accept(this);
-  		curMethodIR.addQuad(ins);
-
-  		String exprType = getVarType(ins.arg1);
-
+  		ArrayList<String> params = new ArrayList<String>();
+  		// the first param is the object itself
+  		params.add(n.e.accept(this));
+  		// add the rest of the params to the list
   		for (int i = 0; i < n.el.size(); i++) {
+  			params.add(n.el.elementAt(i).accept(this));
+  		}
+
+  		String exprType = getVarType(params.get(0));
+
+  		Quadruple ins;
+  		for (int i = 0; i < params.size(); i++) {
   			ins = new Quadruple(InstructionType.PARAM);
   			ins.operator = "param";
-  			ins.arg1 = n.el.elementAt(i).accept(this);
+  			ins.arg1 = params.get(i);
   			curMethodIR.addQuad(ins);
   		}
   		int numParams = n.el.size() + 1;

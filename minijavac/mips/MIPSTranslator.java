@@ -83,14 +83,14 @@ public class MIPSTranslator {
 					}
 					lastAssemblySize = assembly.size();
 				}
-
 				// stick the method label on the first generated instruction
 				String label = methodIR.canonicalMethodName();
 				assembly.addLabel(label, assembly.getInstruction(assemblySize));
 				// only main can exit like this
 				assembly.addInstruction(new Jal("_system_exit"));
 			} else {
-				addPrologue(methodIR);
+				// FIXME: uncomment this
+				//addPrologue(methodIR);
 
 				int lastAssemblySize = assembly.size();
 				for (int j = 0; j < methodIR.size(); j++) {
@@ -105,8 +105,8 @@ public class MIPSTranslator {
 					}
 					lastAssemblySize = assembly.size();
 				}
-
-				addEpilogue(methodIR);
+				// FIXME: uncomment this
+				//addEpilogue(methodIR);
 			}
 
 			symbolTable.endScope();
