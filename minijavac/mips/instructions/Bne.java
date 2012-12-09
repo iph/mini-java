@@ -10,6 +10,6 @@ public class Bne extends MIPSInstruction {
     }
 
     public String toString() {
-        return "bne " + rs + ", " + rt + ", " + l;
+        return "bne " + rs + ", " + rt + ", " + label;
     }
 }

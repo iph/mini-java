@@ -4,16 +4,16 @@ import java.util.*;
 import minijavac.*;
 import minijavac.ir.*;
 
-public class MIPSObjectTransformer {
+public class MIPSIRTransformer {
 	private SymbolTable symbolTable;
 	private ClassAttribute curClass;
 	private MethodAttribute curMethod;
 
-	public MIPSObjectTransformer(SymbolTable symTable) {
+	public MIPSIRTransformer(SymbolTable symTable) {
 		symbolTable = symTable;
 	}
 
-	public void transformIR(IR ir) {
+	public void transform(IR ir) {
 		for (int i = 0; i < ir.size(); i++) {
 			MethodIR methodIR = ir.getMethodIR(i);
 			
@@ -28,8 +28,11 @@ public class MIPSObjectTransformer {
 			curClass = klass;
 			curMethod = method;
 
-			updateUses(methodIR);
-			updateDefs(methodIR);
+			updateClassVarUses(methodIR);
+			updateClassVarDefs(methodIR);
+
+			updateArrayUses(methodIR);
+			updateArrayDefs(methodIR);
 
 			symbolTable.endScope();
 		}
@@ -38,7 +41,7 @@ public class MIPSObjectTransformer {
 	// TODO: if there are multiple instructions referencing the same class
 	//       var, we probably shouldn't do a load instruction each time.
 	//
-	private void updateUses(MethodIR methodIR) {
+	private void updateClassVarUses(MethodIR methodIR) {
 		int irSize = methodIR.size();
 		for (int i = irSize-1; i >= 0; i--) {
 			Quadruple quad = methodIR.getQuad(i);
@@ -119,7 +122,7 @@ public class MIPSObjectTransformer {
 		}
 	}
 
-	private void updateDefs(MethodIR methodIR) {
+	private void updateClassVarDefs(MethodIR methodIR) {
 		int irSize = methodIR.size();
 		for (int i = irSize-1; i >= 0; i--) {
 			Quadruple quad = methodIR.getQuad(i);
@@ -169,6 +172,133 @@ public class MIPSObjectTransformer {
 
 				methodIR.replaceQuadAt(i, newQuads);
 			}
+		}
+	}
+
+	// TODO: these methods don't have to assume the only arrays
+	//       are of ints, but they currently do
+	private void updateArrayUses(MethodIR methodIR) {
+		// result := arg1[arg2]
+		//
+		// newTemp1 := 4
+		// newTemp2 := arg2 * newTemp1
+		// newTemp3 := newTemp2 + newTemp1 (length is first WORD)
+		// result := load arg1 + offset newTemp3
+
+		int irSize = methodIR.size();
+		for (int i = irSize-1; i >= 0; i--) {
+			Quadruple quad = methodIR.getQuad(i);
+			if (quad.getType() != InstructionType.ARRAY_ASSIGN) {
+				continue;
+			}
+
+			ArrayList<Quadruple> newQuads = new ArrayList<Quadruple>();
+
+			// we'll need 3 new temporaries to do this array access
+			String tempVar1 = methodIR.nextTempVar();
+			String tempVar2 = methodIR.nextTempVar();
+			String tempVar3 = methodIR.nextTempVar();
+			curMethod.addVariable(tempVar1, new VariableAttribute(tempVar1, "int"));
+			curMethod.addVariable(tempVar2, new VariableAttribute(tempVar2, "int"));
+			curMethod.addVariable(tempVar3, new VariableAttribute(tempVar3, "int"));
+
+			// we need to first store our scaling constant (4 for an int)
+			Quadruple constQuad = new Quadruple(InstructionType.COPY);
+			constQuad.operator = ":=";
+			constQuad.result = tempVar1;
+			constQuad.arg1 = "4";
+
+			// then multiply the scaling constant by our index
+			Quadruple scaleQuad = new Quadruple(InstructionType.BINARY_ASSIGN);
+			scaleQuad.operator = "*";
+			scaleQuad.result = tempVar2;
+			scaleQuad.arg1 = quad.arg2;
+			scaleQuad.arg2 = tempVar1;
+
+			// then we have to jump past the length WORD at the beginning
+			Quadruple skipQuad = new Quadruple(InstructionType.BINARY_ASSIGN);
+			skipQuad.operator = "+";
+			skipQuad.result = tempVar3;
+			skipQuad.arg1 = tempVar2;
+			skipQuad.arg2 = tempVar1;
+
+			// finally, we can load the proper index into our register
+			Quadruple loadQuad = new Quadruple(InstructionType.STORE);
+			loadQuad.operator = "load";
+			loadQuad.result = quad.result;
+			loadQuad.arg1 = quad.arg1;
+			loadQuad.arg2 = tempVar3;
+
+			// stick all the quads in an array and replace the old quad
+			newQuads.add(constQuad);
+			newQuads.add(scaleQuad);
+			newQuads.add(skipQuad);
+			newQuads.add(loadQuad);
+
+			methodIR.replaceQuadAt(i, newQuads);
+		}
+	}
+
+	private void updateArrayDefs(MethodIR methodIR) {
+		// result[arg1] := arg2
+		//
+		// becomes:
+		// newTemp1 := 4
+		// newTemp2 := arg1 * newTemp1
+		// newTemp3 := newTemp2 + newTemp1 (length is first WORD)
+		// store arg2, result + offset newTemp3
+
+		int irSize = methodIR.size();
+		for (int i = irSize-1; i >= 0; i--) {
+			Quadruple quad = methodIR.getQuad(i);
+			if (quad.getType() != InstructionType.ARRAY_ASSIGN) {
+				continue;
+			}
+
+			ArrayList<Quadruple> newQuads = new ArrayList<Quadruple>();
+
+			// we'll need 3 new temporaries to do this array access
+			String tempVar1 = methodIR.nextTempVar();
+			String tempVar2 = methodIR.nextTempVar();
+			String tempVar3 = methodIR.nextTempVar();
+			curMethod.addVariable(tempVar1, new VariableAttribute(tempVar1, "int"));
+			curMethod.addVariable(tempVar2, new VariableAttribute(tempVar2, "int"));
+			curMethod.addVariable(tempVar3, new VariableAttribute(tempVar3, "int"));
+
+			// we need to first store our scaling constant (4 for an int)
+			Quadruple constQuad = new Quadruple(InstructionType.COPY);
+			constQuad.operator = ":=";
+			constQuad.result = tempVar1;
+			constQuad.arg1 = "4";
+
+			// then multiply the scaling constant by our index
+			Quadruple scaleQuad = new Quadruple(InstructionType.BINARY_ASSIGN);
+			scaleQuad.operator = "*";
+			scaleQuad.result = tempVar2;
+			scaleQuad.arg1 = quad.arg1;
+			scaleQuad.arg2 = tempVar1;
+
+			// then we have to jump past the length WORD at the beginning
+			Quadruple skipQuad = new Quadruple(InstructionType.BINARY_ASSIGN);
+			skipQuad.operator = "+";
+			skipQuad.result = tempVar3;
+			skipQuad.arg1 = tempVar2;
+			skipQuad.arg2 = tempVar1;
+
+			// finally, we can store at the proper index
+			Quadruple storeQuad = new Quadruple(InstructionType.STORE);
+			storeQuad.operator = "store";
+			storeQuad.result = quad.result;
+			storeQuad.arg1 = quad.arg2;
+			storeQuad.arg2 = tempVar3;
+
+			// stick all the quads in an array and replace the old quad
+			newQuads.add(constQuad);
+			newQuads.add(scaleQuad);
+			newQuads.add(skipQuad);
+			newQuads.add(storeQuad);
+
+			methodIR.replaceQuadAt(i, newQuads);
 		}
 	}
 }

@@ -79,7 +79,7 @@ public class MIPSTranslator {
 					if (methodIR.hasLabel(quad)) {
 						// if the quad had a label, assign that label
 						// to the first instruction it generated
-						assembly.addLabel(methodIR.getLabel(quad), assembly.getInstruction(lastAssemblySize))
+						assembly.addLabel(methodIR.getLabel(quad), assembly.getInstruction(lastAssemblySize));
 					}
 					lastAssemblySize = assembly.size();
 				}
@@ -101,7 +101,7 @@ public class MIPSTranslator {
 					if (methodIR.hasLabel(quad)) {
 						// if the quad had a label, assign that label
 						// to the first instruction it generated
-						assembly.addLabel(methodIR.getLabel(quad), assembly.getInstruction(lastAssemblySize))
+						assembly.addLabel(methodIR.getLabel(quad), assembly.getInstruction(lastAssemblySize));
 					}
 					lastAssemblySize = assembly.size();
 				}
@@ -116,7 +116,6 @@ public class MIPSTranslator {
 		return assembly;
 	}
 
-	// TODO: preserve saved temporaries, $s0-$s7?
 	private void addPrologue(MethodIR methodIR) {
 		MIPSFrame frame = frameAllocator.getFrame(methodIR.canonicalMethodName());
 		// allocate space for activation frame
@@ -147,8 +146,6 @@ public class MIPSTranslator {
 		assembly.addInstruction(new Jr("$ra"));
 	}
 
-	// TODO: store register info in symbol table so later quads can
-	//       'ask' for the info
 	private void translateQuad(Quadruple quad) {
 		switch (quad.getType()) {
 		case BINARY_ASSIGN:
@@ -174,12 +171,6 @@ public class MIPSTranslator {
 			break;
 		case RETURN:
 			translateReturn(quad);
-			break;
-		case ARRAY_ASSIGN:
-			translateArrayAssign(quad);
-			break;
-		case INDEXED_ASSIGN:
-			translateIndexedAssign(quad);
 			break;
 		case NEW:
 			translateNew(quad);
@@ -268,35 +259,23 @@ public class MIPSTranslator {
 
 	private void translateReturn(Quadruple quad) {
 		assembly.addInstruction(new Move("$v0", quad.arg1));
-		// TODO: account for early returns even though they don't exist?
-		//assembly.addInstruction(new Jump(curMethodIR.canonicalMethodName() + "_epilogue"));
-	}
-
-	private void translateArrayAssign(Quadruple quad) {
-	}
-
-	private void translateIndexedAssign(Quadruple quad) {
+		// FIXME: Leave this, or comment out? 
+		// account for early returns (even though they don't exist)
+		assembly.addInstruction(new Jump(curMethodIR.canonicalMethodName() + "_epilogue"));
 	}
 
 	private void translateNew(Quadruple quad) {
-		/*
-		String resultReg = regAllocator.getTempRegister();
-
-		//assembly.addInstruction(new Move(resultReg, "$v0"));
+		// FIXME
 
 		// We don't support objects yet, so store 'null' in the register
-		assembly.addInstruction(new Li(resultReg, 0));
-
-		// store the register loc of result in the symbol table
-		VariableAttribute var = (VariableAttribute)symbolTable.get(quad.result);
-		var.setRegister(resultReg);
-		*/
+		assembly.addInstruction(new Li(quad.result, 0));
 	}
 
 	private void translateNewArray(Quadruple quad) {
 	}
 
 	private void translateLength(Quadruple quad) {
+		assembly.addInstruction(new Lw(quad.result, quad.arg1, 0));
 	}
 
 	private void translateLoad(Quadruple quad) {

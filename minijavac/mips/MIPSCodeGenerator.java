@@ -6,14 +6,14 @@ import minijavac.ir.*;
 import minijavac.*;
 
 public class MIPSCodeGenerator extends CodeGenerator {
-	private MIPSObjectTransformer objectTransformer;
+	private MIPSIRTransformer irTransformer;
 	private MIPSRegisterAllocator registerAllocator;
 	private MIPSFrameAllocator frameAllocator;
 	private MIPSTranslator translator;
 
 	public MIPSCodeGenerator(IR ir, SymbolTable symbolTable) {
 		super(ir, symbolTable);
-		objectTransformer = new MIPSObjectTransformer(symbolTable);
+		irTransformer = new MIPSIRTransformer(symbolTable);
 		frameAllocator = new MIPSFrameAllocator();
 		registerAllocator = new MIPSRegisterAllocator(symbolTable, frameAllocator);
 		translator = new MIPSTranslator(symbolTable, registerAllocator, frameAllocator);
@@ -26,7 +26,8 @@ public class MIPSCodeGenerator extends CodeGenerator {
 		storeStorageData();
 
 		// update IR to reflect loading and storing class vars
-		objectTransformer.transformIR(ir);
+		// and convert array accesses to multiple instructions
+		irTransformer.transform(ir);
 
 		System.out.println("AFTER");
 		System.out.println(ir);
