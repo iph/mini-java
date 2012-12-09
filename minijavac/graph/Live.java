@@ -123,6 +123,14 @@ public class Live{
                     def.add(quad.result);
                     use.add(quad.arg1);
                     break;
+                case STORE:
+                    use.add(quad.result);
+                    use.add(quad.arg1);
+                    break;
+                case LOAD:
+                    use.add(quad.result);
+                    use.add(quad.arg1);
+                    break;
                 default:
                     break;
             }

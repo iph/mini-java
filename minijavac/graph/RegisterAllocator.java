@@ -38,7 +38,6 @@ public class RegisterAllocator{
         coloredVars = new HashMap<String, Register>();
         precolor();
         resolveMoves();
-        System.out.println(live);
     }
 
     /* Will rewrite parameters to IR copy instructions. */
