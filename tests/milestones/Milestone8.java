@@ -10,6 +10,7 @@ class Test2 {
 	int childObjParentValAgain;
 	int childObjVal;
 	int secondChildObjVal;
+	int secondChildObjValAgain;
 
 	public int Start() {
 		int[] arr;
@@ -31,6 +32,7 @@ class Test2 {
 
 		secondChildObj = new SecondChildObject();
 		secondChildObjVal = secondChildObj.InitChild(3);
+		secondChildObjValAgain = secondChildObj.getVal();
 
 		arr = new int[10];
 		i = 0;
@@ -39,8 +41,8 @@ class Test2 {
 			i = i + 1;
 		}
 
-		// 9 + 6 + 6 + 3 + 3 + 9
-		return objVal + childObjParentVal + childObjParentValAgain + childObjVal + secondChildObjVal + arr[i];
+		// 9 + 6 + 6 + 3 + 3 + 9 + 9
+		return objVal + childObjParentVal + childObjParentValAgain + childObjVal + secondChildObjVal + secondChildObjValAgain + arr[i];
 	}
 }
 
@@ -86,5 +88,9 @@ class SecondChildObject extends Object {
 		val = v;
 
 		return val;
+	}
+
+	public int getVal() {
+		return 9;
 	}
 }
