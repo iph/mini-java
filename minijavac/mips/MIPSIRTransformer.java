@@ -8,9 +8,22 @@ public class MIPSIRTransformer {
 	private SymbolTable symbolTable;
 	private ClassAttribute curClass;
 	private MethodAttribute curMethod;
+	private HashMap<String, ClassAttribute> classes;
 
 	public MIPSIRTransformer(SymbolTable symTable) {
 		symbolTable = symTable;
+		storeClasses();
+	}
+
+	private void storeClasses() {
+		classes = new HashMap<String, ClassAttribute>();
+		HashMap<String, LinkedList<Object>> environment = symbolTable.getEnvironment();
+		for (Map.Entry<String, LinkedList<Object>> entry : environment.entrySet()) {
+			Attribute attr = (Attribute)(entry.getValue().get(0));
+			if (attr instanceof ClassAttribute) {
+				classes.put(entry.getKey(), (ClassAttribute)attr);
+			}
+		}
 	}
 
 	public void transform(IR ir) {
@@ -33,6 +46,9 @@ public class MIPSIRTransformer {
 
 			updateArrayUses(methodIR);
 			updateArrayDefs(methodIR);
+
+			updateNewArrays(methodIR);
+			updateNewObjects(methodIR);
 
 			symbolTable.endScope();
 		}
@@ -295,6 +311,136 @@ public class MIPSIRTransformer {
 			newQuads.add(skipQuad);
 			newQuads.add(storeQuad);
 
+			methodIR.replaceQuadAt(i, newQuads);
+		}
+	}
+
+	private void updateNewArrays(MethodIR methodIR) {
+		// result := new arg1[], arg2
+		//
+		// becomes:
+		// newTemp1 := 1
+		// newTemp2 := 4
+		// newTemp3 := arg2 + newTemp1
+		// newTemp4 := newTemp3 * newTemp2
+		// param newTemp4
+		// result := call _new_array, 1
+
+		int irSize = methodIR.size();
+		for (int i = irSize-1; i >= 0; i--) {
+			Quadruple quad = methodIR.getQuad(i);
+			if (quad.getType() != InstructionType.NEW_ARRAY) {
+				continue;
+			}
+
+			ArrayList<Quadruple> newQuads = new ArrayList<Quadruple>();
+
+			// we'll need 4 new temporaries to calculate array size
+			String tempVar1 = methodIR.nextTempVar();
+			String tempVar2 = methodIR.nextTempVar();
+			String tempVar3 = methodIR.nextTempVar();
+			String tempVar4 = methodIR.nextTempVar();
+			curMethod.addVariable(tempVar1, new VariableAttribute(tempVar1, "int"));
+			curMethod.addVariable(tempVar2, new VariableAttribute(tempVar2, "int"));
+			curMethod.addVariable(tempVar3, new VariableAttribute(tempVar3, "int"));
+			curMethod.addVariable(tempVar4, new VariableAttribute(tempVar4, "int"));
+
+			// we need to first store our length constant (= 1 int)
+			Quadruple lengthConstQuad = new Quadruple(InstructionType.COPY);
+			lengthConstQuad.operator = ":=";
+			lengthConstQuad.result = tempVar1;
+			lengthConstQuad.arg1 = "1";
+
+			// then we need to store our scaling constant (= 4 bytes to an int)
+			Quadruple scaleConstQuad = new Quadruple(InstructionType.COPY);
+			scaleConstQuad.operator = ":=";
+			scaleConstQuad.result = tempVar2;
+			scaleConstQuad.arg1 = "4";
+
+			// then add the amount of ints + length constant
+			Quadruple numIntsQuad = new Quadruple(InstructionType.BINARY_ASSIGN);
+			numIntsQuad.operator = "+";
+			numIntsQuad.result = tempVar3;
+			numIntsQuad.arg1 = quad.arg2;
+			numIntsQuad.arg2 = tempVar1;
+
+			// then we scale by the size of ints
+			Quadruple scaleQuad = new Quadruple(InstructionType.BINARY_ASSIGN);
+			scaleQuad.operator = "*";
+			scaleQuad.result = tempVar4;
+			scaleQuad.arg1 = tempVar3;
+			scaleQuad.arg2 = tempVar2;
+
+			// next, we pass our temp holding the size of the array
+			// as a param to the _new_array function
+			Quadruple paramQuad = new Quadruple(InstructionType.PARAM);
+			paramQuad.operator = "param";
+			paramQuad.arg1 = tempVar4;
+
+			// finally, we call the allocation function
+			Quadruple callQuad = new Quadruple(InstructionType.CALL);
+			callQuad.operator = "call";
+			callQuad.result = quad.result;
+			callQuad.arg1 = "_new_array";
+			callQuad.arg2 = "1";
+
+			// stick all the quads in an array and replace the old quad
+			newQuads.add(lengthConstQuad);
+			newQuads.add(scaleConstQuad);
+			newQuads.add(numIntsQuad);
+			newQuads.add(scaleQuad);
+			newQuads.add(paramQuad);
+			newQuads.add(callQuad);
+
+			methodIR.replaceQuadAt(i, newQuads);
+		}
+	}
+
+	private void updateNewObjects(MethodIR methodIR) {
+		// result := new arg1
+		//
+		// becomes:
+		// newTemp1 := classSize(arg1)
+		// param newTemp1
+		// result := call _new_object, 1
+
+		int irSize = methodIR.size();
+		for (int i = irSize-1; i >= 0; i--) {
+			Quadruple quad = methodIR.getQuad(i);
+			if (quad.getType() != InstructionType.NEW) {
+				continue;
+			}
+
+			ArrayList<Quadruple> newQuads = new ArrayList<Quadruple>();
+
+			// we'll need a new temporary to store class size
+			String tempVar1 = methodIR.nextTempVar();
+			curMethod.addVariable(tempVar1, new VariableAttribute(tempVar1, "int"));
+
+			// we need to first store our class size (in bytes)
+			Quadruple sizeQuad = new Quadruple(InstructionType.COPY);
+			sizeQuad.operator = ":=";
+			sizeQuad.result = tempVar1;
+			sizeQuad.arg1 = ""+classes.get(quad.arg1).getSize();
+
+			// next, we pass our temp holding the size of the class
+			// as a param to the _new_object function
+			Quadruple paramQuad = new Quadruple(InstructionType.PARAM);
+			paramQuad.operator = "param";
+			paramQuad.arg1 = tempVar1;
+
+			// finally, we call the allocation function
+			Quadruple callQuad = new Quadruple(InstructionType.CALL);
+			callQuad.operator = "call";
+			callQuad.result = quad.result;
+			callQuad.arg1 = "_new_object";
+			callQuad.arg2 = "1";
+
+			// stick all the quads in an array and replace the old quad
+			newQuads.add(sizeQuad);
+			newQuads.add(paramQuad);
+			newQuads.add(callQuad);
+			
 			methodIR.replaceQuadAt(i, newQuads);
 		}
 	}

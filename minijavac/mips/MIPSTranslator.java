@@ -163,20 +163,11 @@ public class MIPSTranslator {
 		case COND_JUMP:
 			translateConditionalJump(quad);
 			break;
-		case PARAM:
-			translateParam(quad);
-			break;
 		case CALL:
 			translateCall(quad);
 			break;
 		case RETURN:
 			translateReturn(quad);
-			break;
-		case NEW:
-			translateNew(quad);
-			break;
-		case NEW_ARRAY:
-			translateNewArray(quad);
 			break;
 		case LENGTH:
 			translateLength(quad);
@@ -231,30 +222,14 @@ public class MIPSTranslator {
 		assembly.addInstruction(new Bne(quad.arg2, "$zero", quad.arg1));
 	}
 
-	// TODO
-	// Old code below
-	private void translateParam(Quadruple quad) {
-		/*
-		String paramReg = regAllocator.getParamRegister();
-		
-		if (isInt(quad.arg1)) {
-			assembly.addInstruction(new Li(paramReg, Integer.parseInt(quad.arg1)));
-		} else if (symbolTable.get(quad.arg1) instanceof VariableAttribute) {
-			VariableAttribute var = (VariableAttribute)symbolTable.get(quad.arg1);
-			assembly.addInstruction(new Move(paramReg, var.getRegister()));
-		}
-		*/
-	}
-
 	private void translateCall(Quadruple quad) {
 		String fullMethodName = quad.arg1;
 		if (fullMethodName.equals("System.out.println")) {
 			assembly.addInstruction(new Jal("_system_out_println"));
-			return;
+		} else {
+			assembly.addInstruction(new Jal(fullMethodName));
+			assembly.addInstruction(new Move(quad.result, "$v0"));
 		}
-
-		assembly.addInstruction(new Jal(fullMethodName));
-		assembly.addInstruction(new Move(quad.result, "$v0"));
 	}
 
 	private void translateReturn(Quadruple quad) {
@@ -264,24 +239,16 @@ public class MIPSTranslator {
 		assembly.addInstruction(new Jump(curMethodIR.canonicalMethodName() + "_epilogue"));
 	}
 
-	private void translateNew(Quadruple quad) {
-		// FIXME
-
-		// We don't support objects yet, so store 'null' in the register
-		assembly.addInstruction(new Li(quad.result, 0));
-	}
-
-	private void translateNewArray(Quadruple quad) {
-	}
-
 	private void translateLength(Quadruple quad) {
 		assembly.addInstruction(new Lw(quad.result, quad.arg1, 0));
 	}
 
 	private void translateLoad(Quadruple quad) {
+
 	}
 
 	private void translateStore(Quadruple quad) {
+		
 	}
 
     private boolean isInt(String possibleInt){
