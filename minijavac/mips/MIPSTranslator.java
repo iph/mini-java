@@ -110,6 +110,9 @@ public class MIPSTranslator {
 				// FIXME: uncomment this
 				//addEpilogue(methodIR);
 
+				// return to caller
+				assembly.addInstruction(new Jr("$ra"));
+		
 				// stick the method label on the first generated instruction
 				String label = methodIR.canonicalMethodName();
 				assembly.addLabel(label, assembly.getInstruction(assemblySize));
@@ -145,8 +148,6 @@ public class MIPSTranslator {
 		assembly.addInstruction(new Lw("$fp", "$sp", frame.getSize()-8));
 		// deallocate activation frame
 		assembly.addInstruction(new Addi("$sp", "$sp", frame.getSize()));
-		// return to caller
-		assembly.addInstruction(new Jr("$ra"));
 	}
 
 	private void translateQuad(Quadruple quad) {
@@ -239,7 +240,7 @@ public class MIPSTranslator {
 		assembly.addInstruction(new Move("$v0", quad.arg1));
 		// FIXME: Leave this, or comment out? 
 		// account for early returns (even though they don't exist)
-		assembly.addInstruction(new Jump(curMethodIR.canonicalMethodName() + "_epilogue"));
+		//assembly.addInstruction(new Jump(curMethodIR.canonicalMethodName() + "_epilogue"));
 	}
 
 	private void translateLength(Quadruple quad) {
