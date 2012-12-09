@@ -58,12 +58,9 @@ public abstract class Assembly {
 				} else {
 					repr.append(String.format("%-7s", label + ":"));
 				}
-				// add instruction
-				repr.append(String.format("%s\n", instructions.get(i).toString()));
-			} else {
-				// add instruction
-				repr.append(String.format("       %s\n", instructions.get(i).toString()));
 			}
+			// add instruction
+			repr.append(String.format("       %s\n", instructions.get(i).toString()));
 		}
 		return repr.toString();
 	}
