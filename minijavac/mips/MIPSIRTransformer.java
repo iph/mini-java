@@ -215,7 +215,8 @@ public class MIPSIRTransformer {
 		// newTemp1 := 4
 		// newTemp2 := arg2 * newTemp1
 		// newTemp3 := newTemp2 + newTemp1 (length is first WORD)
-		// result := load arg1 + offset newTemp3
+		// newTemp4 := arg1 + newTemp3
+		// result := load newTemp4 + offset 0
 
 		int irSize = methodIR.size();
 		for (int i = irSize-1; i >= 0; i--) {
@@ -230,9 +231,11 @@ public class MIPSIRTransformer {
 			String tempVar1 = methodIR.nextTempVar();
 			String tempVar2 = methodIR.nextTempVar();
 			String tempVar3 = methodIR.nextTempVar();
+			String tempVar4 = methodIR.nextTempVar();
 			curMethod.addVariable(tempVar1, new VariableAttribute(tempVar1, "int"));
 			curMethod.addVariable(tempVar2, new VariableAttribute(tempVar2, "int"));
 			curMethod.addVariable(tempVar3, new VariableAttribute(tempVar3, "int"));
+			curMethod.addVariable(tempVar4, new VariableAttribute(tempVar4, "int"));
 
 			// we need to first store our scaling constant (4 for an int)
 			Quadruple constQuad = new Quadruple(InstructionType.COPY);
@@ -254,17 +257,25 @@ public class MIPSIRTransformer {
 			skipQuad.arg1 = tempVar2;
 			skipQuad.arg2 = tempVar1;
 
+			// then we have to jump past the length WORD at the beginning
+			Quadruple offsetQuad = new Quadruple(InstructionType.BINARY_ASSIGN);
+			offsetQuad.operator = "+";
+			offsetQuad.result = tempVar4;
+			offsetQuad.arg1 = quad.arg1;
+			offsetQuad.arg2 = tempVar3;
+
 			// finally, we can load the proper index into our register
 			Quadruple loadQuad = new Quadruple(InstructionType.STORE);
 			loadQuad.operator = "load";
 			loadQuad.result = quad.result;
-			loadQuad.arg1 = quad.arg1;
-			loadQuad.arg2 = tempVar3;
+			loadQuad.arg1 = tempVar4;
+			loadQuad.arg2 = "0";
 
 			// stick all the quads in an array and replace the old quad
 			newQuads.add(constQuad);
 			newQuads.add(scaleQuad);
 			newQuads.add(skipQuad);
+			newQuads.add(offsetQuad);
 			newQuads.add(loadQuad);
 
 			methodIR.replaceQuadAt(i, newQuads);
@@ -278,7 +289,8 @@ public class MIPSIRTransformer {
 		// newTemp1 := 4
 		// newTemp2 := arg1 * newTemp1
 		// newTemp3 := newTemp2 + newTemp1 (length is first WORD)
-		// store arg2, result + offset newTemp3
+		// newTemp4 := result + newTemp3
+		// store arg2, newTemp4 + offset 0
 
 		int irSize = methodIR.size();
 		for (int i = irSize-1; i >= 0; i--) {
@@ -293,9 +305,11 @@ public class MIPSIRTransformer {
 			String tempVar1 = methodIR.nextTempVar();
 			String tempVar2 = methodIR.nextTempVar();
 			String tempVar3 = methodIR.nextTempVar();
+			String tempVar4 = methodIR.nextTempVar();
 			curMethod.addVariable(tempVar1, new VariableAttribute(tempVar1, "int"));
 			curMethod.addVariable(tempVar2, new VariableAttribute(tempVar2, "int"));
 			curMethod.addVariable(tempVar3, new VariableAttribute(tempVar3, "int"));
+			curMethod.addVariable(tempVar4, new VariableAttribute(tempVar4, "int"));
 
 			// we need to first store our scaling constant (4 for an int)
 			Quadruple constQuad = new Quadruple(InstructionType.COPY);
@@ -317,17 +331,25 @@ public class MIPSIRTransformer {
 			skipQuad.arg1 = tempVar2;
 			skipQuad.arg2 = tempVar1;
 
+			Quadruple offsetQuad = new Quadruple(InstructionType.BINARY_ASSIGN);
+			offsetQuad.operator = "+";
+			offsetQuad.result = tempVar4;
+			offsetQuad.arg1 = quad.result;
+			offsetQuad.arg2 = tempVar3;
+
 			// finally, we can store at the proper index
 			Quadruple storeQuad = new Quadruple(InstructionType.STORE);
 			storeQuad.operator = "store";
-			storeQuad.result = quad.result;
+			storeQuad.result = tempVar4;
 			storeQuad.arg1 = quad.arg2;
-			storeQuad.arg2 = tempVar3;
+			storeQuad.arg2 = "0";
+
 
 			// stick all the quads in an array and replace the old quad
 			newQuads.add(constQuad);
 			newQuads.add(scaleQuad);
 			newQuads.add(skipQuad);
+			newQuads.add(offsetQuad);
 			newQuads.add(storeQuad);
 
 			methodIR.replaceQuadAt(i, newQuads);
