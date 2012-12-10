@@ -14,7 +14,7 @@ public class RegisterAllocator{
     };
     public static final int K = colorable.length;
     InterferenceGraph ifg;
-    Set<String> inStack, precoloredVars, precolorsFound, potentialMoves, potentialSpills;
+    Set<String> savedRegisters, inStack, precoloredVars, precolorsFound, potentialMoves, potentialSpills;
     Stack<String> uncoloredVars;
     Live live;
     Map<String, Register> coloredVars;
@@ -28,7 +28,6 @@ public class RegisterAllocator{
         this.method = method;
         canWrite = true;
         frame = f;
-        System.out.println("Hi");
         rewriteParams();
         live = new Live(method);
         live.computeLiveness();
@@ -37,6 +36,7 @@ public class RegisterAllocator{
         uncoloredVars = new Stack<String>();
         coalescedQuads = new HashMap<Quadruple, Quadruple>();
         precoloredVars = new HashSet<String>();
+        savedRegisters =  new HashSet<String>();
         potentialSpills = new HashSet<String>();
         precolorsFound = new HashSet<String>();
         potentialMoves = new HashSet<String>();
@@ -437,18 +437,24 @@ public class RegisterAllocator{
         return false;
     }
     private void rewriteVariables(){
-       for(Quadruple quad: method){
+        int size = method.size();
+       for(int i = 0; i < size; i++){
+           Quadruple quad = method.getQuad(i);
             if(coloredVars.containsKey(quad.result)){
+                saveSRegister(coloredVars.get(quad.result));
                 quad.result = coloredVars.get(quad.result).toString();
             }
             if(coloredVars.containsKey(quad.arg1)){
+                saveSRegister(coloredVars.get(quad.arg1));
                 quad.arg1 = coloredVars.get(quad.arg1).toString();
             }
             if(coloredVars.containsKey(quad.arg2)){
+                saveSRegister(coloredVars.get(quad.arg2));
                 quad.arg2 = coloredVars.get(quad.arg2).toString();
             }
+            size = method.size();
         }
-        int size = method.size();
+        size = method.size();
         for(int i = 0; i < size; i++){
             Quadruple quad = method.getQuad(i);
             if(!precoloredVars.contains(quad.result) && !quad.result.equals("")){
@@ -464,6 +470,31 @@ public class RegisterAllocator{
             size = method.size();
         }
 
+    }
+
+    private void saveSRegister(Register save){
+        Register[] sRegisters = {
+            Register.SAVE1, Register.SAVE2, Register.SAVE3, Register.SAVE4,
+            Register.SAVE5, Register.SAVE6, Register.SAVE7, Register.SAVE8
+        };
+        for(int i = 0; i < sRegisters.length; i++){
+            if(sRegisters[i] == save && !savedRegisters.contains(save.toString())){
+                Quadruple saveReg = new Quadruple(InstructionType.STORE);
+                saveReg.arg1 = save.toString();
+                frame.allocate(save.toString());
+                int offset = frame.get(save.toString());
+                saveReg.arg2 = "-" + offset;
+                saveReg.result = "$fp";
+                method.insertQuad(0, saveReg);
+                Quadruple loadReg = new Quadruple(InstructionType.LOAD);
+                loadReg.arg1 = "$fp";
+                loadReg.arg2 = "-" + offset;
+                loadReg.result = save.toString();
+                method.insertQuad(method.size()-1, loadReg);
+                savedRegisters.add(save.toString());
+               break;
+            }
+        }
     }
 
     private void undoCoalesces(){
