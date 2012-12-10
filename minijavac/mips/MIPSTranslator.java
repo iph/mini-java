@@ -134,7 +134,7 @@ public class MIPSTranslator {
 		assembly.addInstruction(new Sw("$fp", "$sp", 4));
 		// set the frame pointer for convenient access
 		assembly.addInstruction(new Move("$fp", "$sp"));
-		assembly.addInstruction(new Addi("$sp", "$sp", frame.getSize()));
+		//assembly.addInstruction(new Addi("$sp", "$sp", frame.getSize()));
 	}
 
 	private void addEpilogue(MethodIR methodIR) {
@@ -146,7 +146,7 @@ public class MIPSTranslator {
 		// epilogue if needed (early return)
 		assembly.addLabel(methodIR.canonicalMethodName() + "_epilogue", firstInstr);
 		// update frame pointer to what it was
-		assembly.addInstruction(new Lw("$fp", "$sp", -4));
+		assembly.addInstruction(new Lw("$fp", "$sp", 4));
 		// same with return address
 		assembly.addInstruction(new Lw("$ra", "$sp", 0));
 		// deallocate activation frame
