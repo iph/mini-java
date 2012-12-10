@@ -81,7 +81,10 @@ public class MIPSTranslator {
 					if (methodIR.hasLabel(quad)) {
 						// if the quad had a label, assign that label
 						// to the first instruction it generated
-						assembly.addLabel(methodIR.getLabel(quad), assembly.getInstruction(lastAssemblySize));
+						ArrayList<String> labels = methodIR.getLabels(quad);
+						for (String label : labels) {
+							assembly.addLabel(label, assembly.getInstruction(lastAssemblySize));
+						}
 					}
 					lastAssemblySize = assembly.size();
 				}
@@ -105,7 +108,10 @@ public class MIPSTranslator {
 					if (methodIR.hasLabel(quad)) {
 						// if the quad had a label, assign that label
 						// to the first instruction it generated
-						assembly.addLabel(methodIR.getLabel(quad), assembly.getInstruction(lastAssemblySize));
+						ArrayList<String> labels = methodIR.getLabels(quad);
+						for (String label : labels) {
+							assembly.addLabel(label, assembly.getInstruction(lastAssemblySize));
+						}
 					}
 					lastAssemblySize = assembly.size();
 				}

@@ -46,22 +46,36 @@ public abstract class Assembly {
 		return null;
 	}
 
+	public ArrayList<String> getLabels(Instruction instr) {
+		ArrayList<String> labels = new ArrayList<String>();
+		for (Map.Entry<String, Instruction> entry : labelLoc.entrySet()) {
+			if (instr == entry.getValue()) {
+				labels.add(entry.getKey());
+			}
+		}
+		return labels;
+	}
+
 	public String toString() {
 		StringBuilder repr = new StringBuilder();
 		// add the instructions
 		for (int i = 0; i < instructions.size(); i++) {
-			// add instruction's label if it has one
-			if (hasLabel(instructions.get(i))) {
-				String label = getLabel(instructions.get(i));
-				if (label.contains(".")) {
-					repr.append(String.format("%s:\n", label));
-					// add instruction
-					repr.append(String.format("        %s\n", instructions.get(i).toString()));
+			// add instruction labels if it has them
+			ArrayList<String> labels = getLabels(instructions.get(i));
+			boolean hasLabel = labels.size() > 0 ? true : false;
+			for (int j = 0; j < labels.size(); j++) {
+				if (j == labels.size()-1 && !labels.get(j).contains(".")) {
+					repr.append(String.format("%-8s", labels.get(j) + ":"));
+					hasLabel = true;
 				} else {
-					repr.append(String.format("%-8s", label + ":"));
-					// add instruction
-					repr.append(String.format("%s\n", instructions.get(i).toString()));
+					repr.append(String.format("%s:\n", labels.get(j)));
+					hasLabel = false;
 				}
+			}
+
+			if (hasLabel) {
+				// add instruction
+				repr.append(String.format("%s\n", instructions.get(i).toString()));
 			} else {
 				// add instruction
 				repr.append(String.format("        %s\n", instructions.get(i).toString()));

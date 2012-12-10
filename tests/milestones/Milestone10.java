@@ -6,7 +6,7 @@ class Test {
 
 class Test2 {
 	public int Start() {
-		return base2pow(16);
+		return this.base2pow(16);
 	}
 
 	public int base2pow(int pow) {
