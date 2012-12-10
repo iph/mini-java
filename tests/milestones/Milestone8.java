@@ -9,11 +9,13 @@ class Test2 {
 	int childObjParentVal;
 	int childObjParentValAgain;
 	int childObjVal;
+	int secondChildObjVal;
 
 	public int Start() {
 		int[] arr;
 		Object obj;
 		ChildObject childObj;
+		SecondChildObject secondChildObj;
 		int i;
 
 		obj = new Object();
@@ -27,6 +29,9 @@ class Test2 {
 		i = obj.InitChild();
 		childObjParentValAgain = obj.getVal();
 
+		secondChildObj = new SecondChildObject();
+		secondChildObjVal = secondChildObj.InitChild(3);
+
 		arr = new int[10];
 		i = 0;
 		while (i < 10) {
@@ -34,8 +39,8 @@ class Test2 {
 			i = i + 1;
 		}
 
-		// 9 + 6 + 6 + 3 + 9
-		return objVal + childObjParentVal + childObjParentValAgain + childObjVal + arr[i];
+		// 9 + 6 + 6 + 3 + 3 + 9 
+		return objVal + childObjParentVal + childObjParentValAgain + childObjVal + secondChildObjVal + arr[i];
 	}
 }
 
@@ -62,12 +67,23 @@ class Object {
 class ChildObject extends Object {
 	int val;
 	int val2;
-	
+
 	public int InitChild() {
 		int parentVal;
 
 		parentVal = this.Init(6);
 		val = 3;
+
+		return val;
+	}
+}
+
+class SecondChildObject extends Object {
+	public int InitChild(int v) {
+		int parentVal;
+
+		parentVal = this.Init(100);
+		val = v;
 
 		return val;
 	}

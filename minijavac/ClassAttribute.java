@@ -110,32 +110,30 @@ public class ClassAttribute extends Attribute {
 		return (hasMethod(methodName) && !(methods.containsKey(methodName)));
 	}
 
+    // Allows for overriding
 	public ClassAttribute getClassDefiningMethod(String methodName) {
-		if (!inheritsMethod(methodName)) {
-			return this;
-		}
-
-		return parentClass.getClassDefiningMethod(methodName);
-	}
-
-	private void getInMyInheritanceScope(SymbolTable table) {
-        for(String id: methods.keySet()){
-            table.put(id, methods.get(id));
+		if (methods.containsKey(methodName)) {
+            return this;
         }
-        if(parentClass != null){
-            parentClass.getInMyInheritanceScope(table);
-        }
-	}
+
+        if (inheritsMethod(methodName)) {
+            return parentClass.getClassDefiningMethod(methodName);
+	    }
+
+        return null;
+    }
 
     public void getInMyScope(SymbolTable table){
+        if(parentClass != null){
+            parentClass.getInMyScope(table);
+        }
+        // add child class entries after so they take
+        // precedence
         for(String id: variables.keySet()){
             table.put(id, variables.get(id));
         }
         for(String id: methods.keySet()){
             table.put(id, methods.get(id));
-        }
-        if(parentClass != null){
-            parentClass.getInMyInheritanceScope(table);
         }
     }
 
