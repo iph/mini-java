@@ -1,5 +1,5 @@
 Project:
-    Mini Java IR Generation/Type Checking
+    MiniJavac
 
 Authors:
     Sean Myers
@@ -11,8 +11,4 @@ How to build:
 How to run:
     edit INPUT_FILE in the Makefile to whatever you want, then run `make run`
 
-Running our personal tests:
-    We built a test suite for each type error. To run the test suite, just run `make test`.
-    Success means that it errored out as we expected. 
-
-    The output of each test is stored in the "actual_output" folder under the "tests" folder.
+Tests provided in `tests/milestones/` directory. Got up to (and including) milestone 9.

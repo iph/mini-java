@@ -180,6 +180,7 @@ public class InterferenceGraph extends Graph{
     }
     public Set<String> adjacent(String a){
         Set<String> temp = new HashSet<String>();
+        System.out.println(vars.get(a));
         for(Node n: adjacent(vars.get(a))){
             temp.add(inverseVars.get(n));
         }
