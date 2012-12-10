@@ -11,23 +11,10 @@ public class SemanticChecker implements SemanticVisitor {
     //A dumb way to figure out when a statement is in main.
     public boolean inMain, hasError;
     private String curClass;
-    private HashMap<String, ClassAttribute> classes;
 
     public SemanticChecker(SymbolTable s, HashMap<Object, MJToken> l){
         location = l;
         environment = s;
-        storeClasses();
-    }
-
-    private void storeClasses() {
-        classes = new HashMap<String, ClassAttribute>();
-        HashMap<String, LinkedList<Object>> environment = symbolTable.getEnvironment();
-        for (Map.Entry<String, LinkedList<Object>> entry : environment.entrySet()) {
-            Attribute attr = (Attribute)(entry.getValue().get(0));
-            if (attr instanceof ClassAttribute) {
-                classes.put(entry.getKey(), (ClassAttribute)attr);
-            }
-        }
     }
 
     private boolean checkTypes(String type1, String type2){
@@ -155,7 +142,7 @@ public class SemanticChecker implements SemanticVisitor {
         String objType = n.e.accept(this);
 
         // Is this an object we're dealing with?
-        if (!environment.hasId(objType) || (!(environment.getRoot(objType) instanceof ClassAttribute))) {
+        if (!environment.hasId(objType) || !(environment.getRoot(objType) instanceof ClassAttribute)) {
             MJToken token = location.get(n);
             System.out.printf("Attempt to call a non-method at line %d, character %d\n",
                               token.line, token.column);
