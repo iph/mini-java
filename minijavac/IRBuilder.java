@@ -75,7 +75,7 @@ public class IRBuilder implements IRVisitor {
         symbolTable.startScope();
 		MethodAttribute method = (MethodAttribute)symbolTable.get("main");
 		method.getInMyScope(symbolTable);
-		
+
 		curMethod = method;
 
 		// use fully-qualified method name for IR
@@ -85,8 +85,6 @@ public class IRBuilder implements IRVisitor {
     	n.s.accept(this);
 
     	ir.addMethodIR(methodIR);
-    	
-        System.out.println(curMethodIR);
 
     	symbolTable.endScope();
     	symbolTable.endScope();
@@ -132,9 +130,9 @@ public class IRBuilder implements IRVisitor {
         symbolTable.startScope();
         MethodAttribute method = (MethodAttribute)symbolTable.get(n.i.s);
         method.getInMyScope(symbolTable);
-        
+
         curMethod = method;
-        
+
         // use fully-qualified method name for IR
 		MethodIR methodIR = new MethodIR(curClass, n.i.s, symbolTable);
 		curMethodIR = methodIR;
@@ -153,7 +151,6 @@ public class IRBuilder implements IRVisitor {
 
 		ir.addMethodIR(methodIR);
 
-		System.out.println(curMethodIR);
 
   		symbolTable.endScope();
 	}

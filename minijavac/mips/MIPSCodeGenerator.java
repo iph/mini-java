@@ -23,20 +23,20 @@ public class MIPSCodeGenerator extends CodeGenerator {
 		// add offsets and other stuff to class vars
 		storeStorageData();
 
-		System.out.println("$$$$$$$$ Initial IR $$$$$$$$");
-		System.out.println(ir);
+		//System.out.println("$$$$$$$$ Initial IR $$$$$$$$");
+		//System.out.println(ir);
 
 		// update IR to reflect loading and storing class vars
 		// and convert array accesses to multiple instructions
 		irTransformer.transform(ir);
 
-		System.out.println("$$$$$$$$ Transformed IR $$$$$$$$");
-		System.out.println(ir);
+		//System.out.println("$$$$$$$$ Transformed IR $$$$$$$$");
+		//System.out.println(ir);
 
 		registerAllocator.allocate(ir);
 
-		System.out.println("$$$$$$$$ Register-Allocated IR $$$$$$$$");
-		System.out.println(ir);
+		//System.out.println("$$$$$$$$ Register-Allocated IR $$$$$$$$");
+		//System.out.println(ir);
 
 		return translator.translate(ir);
 	}
