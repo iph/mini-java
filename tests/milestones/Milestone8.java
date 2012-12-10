@@ -17,6 +17,8 @@ class Test2 {
 		ChildObject childObj;
 		SecondChildObject secondChildObj;
 		int i;
+		int throwawayInt;
+		boolean throwawayBool;
 
 		obj = new Object();
 		objVal = obj.Init(9);
@@ -26,13 +28,14 @@ class Test2 {
 		childObjVal = childObj.InitChild();
 
 		obj = new ChildObject();
-		i = obj.InitChild();
+		throwawayInt = obj.InitChild();
 		childObjParentValAgain = obj.getVal();
 
 		secondChildObj = new SecondChildObject();
 		secondChildObjVal = secondChildObj.InitChild(3);
 
-		i = this.TestObjectParams();
+		throwawayInt = this.TestObjectParams();
+		throwawayBool = this.TestArrayParams();
 
 		arr = new int[10];
 		i = 0;
@@ -69,6 +72,61 @@ class Test2 {
 			ret = n1.getVal();
 		}
 		return ret;
+	}
+
+	public boolean TestArrayParams() {
+		int[] a1;
+		int[] a2;
+		int[] a3;
+		int[] a4;
+
+		a1 = new int[5];
+		a2 = new int[5];
+		a3 = new int[5];
+		a4 = new int[5];
+
+		a1[0] = 2;
+		a2[1] = 2;
+		a3[2] = 2;
+		a4[3] = 3;
+
+		return this.sumArrays(a1, a2, a3, a4);
+	}
+
+	public boolean sumArrays(int[] a1, int[] a2, int[] a3, int[] a4) {
+		int len;
+		int sum;
+		int i;
+
+		len = a1.length;
+		i = 0;
+		while (i < len) {
+			sum = sum + a1[i];
+			i = i + 1;
+		}
+
+		len = a2.length;
+		i = 0;
+		while (i < len) {
+			sum = sum + a2[i];
+			i = i + 1;
+		}
+
+		len = a3.length;
+		i = 0;
+		while (i < len) {
+			sum = sum + a3[i];
+			i = i + 1;
+		}
+
+		len = a4.length;
+		i = 0;
+		while (i < len) {
+			sum = sum + a4[i];
+			i = i + 1;
+		}
+
+		return sum;
 	}
 }
 
@@ -121,6 +179,7 @@ class NewObject {
 	Object obj;
 	NewObject newObj;
 	int val;
+	int[] vals;
 
 	public NewObject NewObject() {
 		NewObject nObj;
