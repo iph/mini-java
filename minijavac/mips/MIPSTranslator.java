@@ -14,6 +14,7 @@ public class MIPSTranslator {
 	private MethodIR curMethodIR;
 	private HashMap<String, ClassAttribute> classes;
 	private Assembly assembly;
+	private int booleanLabelCount;
 
 	public MIPSTranslator(SymbolTable symTable, MIPSRegisterAllocator regAlloc, MIPSFrameAllocator frameAlloc) {
 		symbolTable = symTable;
@@ -24,6 +25,7 @@ public class MIPSTranslator {
 		curMethodIR = null;
 		storeClasses();
 		assembly = null;
+		booleanLabelCount = 0;
 	}
 
 	private void storeClasses() {
@@ -197,6 +199,20 @@ public class MIPSTranslator {
 		} else if (quad.operator.equals("*")) {
 			assembly.addInstruction(new Mult(quad.arg1, quad.arg2));
 			assembly.addInstruction(new Mflo(quad.result));
+		} else if (quad.operator.equals("&&")) {
+			assembly.addInstruction(new And(quad.result, quad.arg1, quad.arg2));
+		} else if (quad.operator.equals("<")) {
+			// default to assuming true
+			assembly.addInstruction(new Li(quad.result, -1));
+			// where to jump if it's less than
+			String endLabel = curMethodIR.canonicalMethodName() + "_b" + booleanLabelCount + "_end";
+			booleanLabelCount++;
+			assembly.addInstruction(new Blt(quad.arg1, quad.arg2, endLabel));
+			assembly.addInstruction(new Li(quad.result, 0));
+			// create no-op to synchronize on
+			Instruction endInstr = new Sll("$zero", "$zero", 0);
+			assembly.addInstruction(endInstr);
+			assembly.addLabel(endLabel, endInstr);
 		}
 	}
 
