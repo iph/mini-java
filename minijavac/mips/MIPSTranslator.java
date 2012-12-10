@@ -128,26 +128,29 @@ public class MIPSTranslator {
 	private void addPrologue(MethodIR methodIR) {
 		MIPSFrame frame = frameAllocator.getFrame(methodIR.canonicalMethodName());
 		// allocate space for activation frame
-		assembly.addInstruction(new Addi("$sp", "$sp", -frame.getSize()));
+		assembly.addInstruction(new Addi("$sp", "$sp", -8));
 		// save the return address and caller's frame pointer
-		assembly.addInstruction(new Sw("$ra", "$sp", frame.getSize()-4));
-		assembly.addInstruction(new Sw("$fp", "$sp", frame.getSize()-8));
+		assembly.addInstruction(new Sw("$ra", "$sp", 0));
+		assembly.addInstruction(new Sw("$fp", "$sp", -4));
 		// set the frame pointer for convenient access
-		assembly.addInstruction(new Addi("$fp", "$sp", frame.getSize()));
+		assembly.addInstruction(new Move("$fp", "$sp"));
+		assembly.addInstruction(new Addi("$sp", "$sp", frame.getSize()));
 	}
 
 	private void addEpilogue(MethodIR methodIR) {
 		MIPSFrame frame = frameAllocator.getFrame(methodIR.canonicalMethodName());
-		// update return address to what it was
-		Instruction firstInstr = new Lw("$ra", "$sp", frame.getSize()-4);
+		// set the stack pointer back to frame pointer
+		Instruction firstInstr = new Move("$sp", "$fp");
 		assembly.addInstruction(firstInstr);
 		// slap a label on the first instruction so we can jump to the
 		// epilogue if needed (early return)
 		assembly.addLabel(methodIR.canonicalMethodName() + "_epilogue", firstInstr);
 		// update frame pointer to what it was
-		assembly.addInstruction(new Lw("$fp", "$sp", frame.getSize()-8));
+		assembly.addInstruction(new Lw("$fp", "$sp", 0));
+		// same with return address
+		assembly.addInstruction(new Lw("$ra", "$sp", -4));
 		// deallocate activation frame
-		assembly.addInstruction(new Addi("$sp", "$sp", frame.getSize()));
+		assembly.addInstruction(new Addi("$sp", "$sp", 8));
 	}
 
 	private void translateQuad(Quadruple quad) {
