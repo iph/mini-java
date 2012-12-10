@@ -202,16 +202,21 @@ public class MIPSTranslator {
 		} else if (quad.operator.equals("&&")) {
 			assembly.addInstruction(new And(quad.result, quad.arg1, quad.arg2));
 		} else if (quad.operator.equals("<")) {
-			// default to assuming true
-			assembly.addInstruction(new Li(quad.result, -1));
-			// where to jump if it's less than
+			String trueLabel = curMethodIR.canonicalMethodName() + "_b" + booleanLabelCount;
 			String endLabel = curMethodIR.canonicalMethodName() + "_b" + booleanLabelCount + "_end";
+			
 			booleanLabelCount++;
-			assembly.addInstruction(new Blt(quad.arg1, quad.arg2, endLabel));
+
+			assembly.addInstruction(new Blt(quad.arg1, quad.arg2, trueLabel));
 			assembly.addInstruction(new Li(quad.result, 0));
+			assembly.addInstruction(new Jump(endLabel));
+			Instruction trueInstr = new Li(quad.result, -1);
+			assembly.addInstruction(trueInstr);
 			// create no-op to synchronize on
 			Instruction endInstr = new Sll("$zero", "$zero", 0);
 			assembly.addInstruction(endInstr);
+
+			assembly.addLabel(trueLabel, trueInstr);
 			assembly.addLabel(endLabel, endInstr);
 		}
 	}
