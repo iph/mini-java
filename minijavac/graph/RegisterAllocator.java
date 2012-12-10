@@ -9,6 +9,8 @@ public class RegisterAllocator{
         Register.TEMP1, Register.TEMP2, Register.TEMP3, Register.TEMP4,
         Register.TEMP5, Register.TEMP6, Register.TEMP7,
         Register.TEMP8, Register.TEMP9, Register.TEMP10,
+        Register.SAVE1, Register.SAVE2, Register.SAVE3, Register.SAVE4,
+        Register.SAVE5, Register.SAVE6, Register.SAVE7, Register.SAVE8
     };
     public static final int K = colorable.length;
     InterferenceGraph ifg;
@@ -197,18 +199,15 @@ public class RegisterAllocator{
             while(potentialSpills.size() > 0){
                 fixedSpills &= selectSpill();
                 if(!fixedSpills){
-                    System.out.println("REAL SPILL BOYS");
                     break;
                 }
             }
             if(fixedSpills){
                 rewriteVariables();
-                System.out.println(method);
                 return;
             }
             else{
                spill();
-               System.out.println(method);
                undoCoalesces();
                rebuild();
             }
@@ -376,12 +375,12 @@ public class RegisterAllocator{
         String varToSpill = null;
         for(String var: ifg.vars()){
             int kCurr = kNeighbors(var);
-            if(kCurr > mostK && !precoloredVars.contains(var) && !potentialSpills.contains(var)){
+            if(kCurr > mostK && !precoloredVars.contains(var)){
                 varToSpill = var;
                 mostK = kCurr;
             }
         }
-        System.out.println(varToSpill);
+
         potentialSpills.add(varToSpill);
     }
     /* Checks to see whether a variable can be colored a certain color.
@@ -389,7 +388,6 @@ public class RegisterAllocator{
      * Returns true if it can be colored with that register.
      */
     private boolean neighborHasColor(String var, Register color){
-        System.out.println(var);
         for(String other: ifg.adjacent(var)){
             if(coloredVars.containsKey(other) && coloredVars.get(other) == color){
                 return true;
