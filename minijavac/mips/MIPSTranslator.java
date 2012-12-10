@@ -51,7 +51,7 @@ public class MIPSTranslator {
 
 		for (int i = 0; i < ir.size(); i++) {
 			MethodIR methodIR = ir.getMethodIR(i);
-			
+
 			// adjust the symbol table's scope
 			symbolTable.startScope();
 			ClassAttribute klass = (ClassAttribute)symbolTable.get(methodIR.getClassName());
@@ -134,7 +134,7 @@ public class MIPSTranslator {
 		assembly.addInstruction(new Sw("$fp", "$sp", 4));
 		// set the frame pointer for convenient access
 		assembly.addInstruction(new Move("$fp", "$sp"));
-		assembly.addInstruction(new Addi("$sp", "$sp", frame.getSize()));
+		assembly.addInstruction(new Addi("$sp", "$sp", -frame.getSize()));
 	}
 
 	private void addEpilogue(MethodIR methodIR) {
@@ -241,7 +241,7 @@ public class MIPSTranslator {
 
 	private void translateReturn(Quadruple quad) {
 		assembly.addInstruction(new Move("$v0", quad.arg1));
-		// FIXME: Leave this, or comment out? 
+		// FIXME: Leave this, or comment out?
 		// account for early returns (even though they don't exist)
 		//assembly.addInstruction(new Jump(curMethodIR.canonicalMethodName() + "_epilogue"));
 	}

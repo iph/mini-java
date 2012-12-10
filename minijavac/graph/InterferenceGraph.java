@@ -54,7 +54,6 @@ public class InterferenceGraph extends Graph{
                     }
                 }
 
-                System.out.println(liveAcross);
                 for(Register reg: tempRegs){
                     liveAcross.add(reg.toString());
                 }

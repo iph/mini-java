@@ -100,7 +100,6 @@ public class RegisterAllocator{
         int paramsPlace = 0;
         while(place > 0 && method.getQuad(place).getType() == InstructionType.PARAM){
             place--;
-            System.out.println("Shifted 1");
         }
         place++;
         if(paramsAmount > 4){
