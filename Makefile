@@ -1,4 +1,4 @@
-INPUT_FILE = tests/milestones/Milestone5.java
+INPUT_FILE = tests/milestones/Milestone8.java
 OUTPUT_FILE = Milestone1.txt
 
 TEST_FILES = easy-test.java test.java BubbleSort.java \

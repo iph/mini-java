@@ -18,7 +18,6 @@ class Test2 {
 		SecondChildObject secondChildObj;
 		int i;
 		int throwawayInt;
-		boolean throwawayBool;
 
 		obj = new Object();
 		objVal = obj.Init(9);
@@ -27,15 +26,16 @@ class Test2 {
 		childObjParentVal = childObj.Init(6);
 		childObjVal = childObj.InitChild();
 
-		obj = new ChildObject();
-		throwawayInt = obj.InitChild();
+		childObj = new ChildObject();
+		throwawayInt = childObj.InitChild();
+		obj = childObj;
 		childObjParentValAgain = obj.getVal();
 
 		secondChildObj = new SecondChildObject();
 		secondChildObjVal = secondChildObj.InitChild(3);
 
 		throwawayInt = this.TestObjectParams();
-		throwawayBool = this.TestArrayParams();
+		throwawayInt = this.TestArrayParams();
 
 		arr = new int[10];
 		i = 0;
@@ -45,7 +45,7 @@ class Test2 {
 		}
 
 		// 9 + 6 + 6 + 3 + 3 + 9 
-		return objVal + childObjParentVal + childObjParentValAgain + childObjVal + secondChildObjVal + arr[i];
+		return objVal + childObjParentVal + childObjParentValAgain + childObjVal + secondChildObjVal + arr[9];
 	}
 
 	public int TestObjectParams() {
@@ -74,7 +74,7 @@ class Test2 {
 		return ret;
 	}
 
-	public boolean TestArrayParams() {
+	public int TestArrayParams() {
 		int[] a1;
 		int[] a2;
 		int[] a3;
@@ -93,10 +93,12 @@ class Test2 {
 		return this.sumArrays(a1, a2, a3, a4);
 	}
 
-	public boolean sumArrays(int[] a1, int[] a2, int[] a3, int[] a4) {
+	public int sumArrays(int[] a1, int[] a2, int[] a3, int[] a4) {
 		int len;
 		int sum;
 		int i;
+
+		sum = 0;
 
 		len = a1.length;
 		i = 0;
@@ -191,16 +193,17 @@ class NewObject {
 	} 
 
 	public boolean connect(NewObject nObj1, NewObject nObj2, NewObject nObj3, NewObject nObj4) {
-		newObj1 = this.getNewObj();
-		newObj2 = newObj;
-		newObj3 = newObj;
-		newObj4 = newObj;
+		nObj1 = this.getNewObj();
+		nObj2 = newObj;
+		nObj3 = newObj;
+		nObj4 = newObj;
 
 		return !false;
 	}
 
 	public int setVal(int v) {
 		val = v;
+		return val;
 	}
 
 	public int getVal() {
