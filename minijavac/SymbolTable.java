@@ -54,6 +54,16 @@ public class SymbolTable {
         }
     }
 
+    public Object getRoot(String id){
+        LinkedList<Object> symbols = environment.get(id);
+        if(symbols == null){
+            return null;
+        }
+        else{
+            return symbols.get(symbols.size()-1);
+        }
+
+    }
     /*
      * Undoes all symbols put on in this scope.
      */

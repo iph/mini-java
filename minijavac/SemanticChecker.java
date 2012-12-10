@@ -142,7 +142,7 @@ public class SemanticChecker implements SemanticVisitor {
         String objType = n.e.accept(this);
 
         // Is this an object we're dealing with?
-        if (!environment.hasId(objType) || !(environment.get(objType) instanceof ClassAttribute)) {
+        if (!environment.hasId(objType) || !(environment.getRoot(objType) instanceof ClassAttribute)) {
             MJToken token = location.get(n);
             System.out.printf("Attempt to call a non-method at line %d, character %d\n",
                               token.line, token.column);
@@ -151,7 +151,7 @@ public class SemanticChecker implements SemanticVisitor {
         }
 
         // Make sure the method exists on the object
-        ClassAttribute objClass = (ClassAttribute)environment.get(objType);
+        ClassAttribute objClass = (ClassAttribute)environment.getRoot(objType);
         if (!objClass.hasMethod(n.i.s)) {
             MJToken token = location.get(n);
             System.out.printf("Attempt to call a non-method at line %d, character %d\n",
