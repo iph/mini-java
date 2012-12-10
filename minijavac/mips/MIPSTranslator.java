@@ -14,6 +14,7 @@ public class MIPSTranslator {
 	private MethodIR curMethodIR;
 	private HashMap<String, ClassAttribute> classes;
 	private Assembly assembly;
+	private int booleanLabelCount;
 
 	public MIPSTranslator(SymbolTable symTable, MIPSRegisterAllocator regAlloc, MIPSFrameAllocator frameAlloc) {
 		symbolTable = symTable;
@@ -24,6 +25,7 @@ public class MIPSTranslator {
 		curMethodIR = null;
 		storeClasses();
 		assembly = null;
+		booleanLabelCount = 0;
 	}
 
 	private void storeClasses() {
@@ -135,6 +137,7 @@ public class MIPSTranslator {
 		// set the frame pointer for convenient access
 		assembly.addInstruction(new Move("$fp", "$sp"));
 		assembly.addInstruction(new Addi("$sp", "$sp", -frame.getSize()));
+		//assembly.addInstruction(new Addi("$sp", "$sp", frame.getSize()));
 	}
 
 	private void addEpilogue(MethodIR methodIR) {
@@ -146,7 +149,7 @@ public class MIPSTranslator {
 		// epilogue if needed (early return)
 		assembly.addLabel(methodIR.canonicalMethodName() + "_epilogue", firstInstr);
 		// update frame pointer to what it was
-		assembly.addInstruction(new Lw("$fp", "$sp", -4));
+		assembly.addInstruction(new Lw("$fp", "$sp", 4));
 		// same with return address
 		assembly.addInstruction(new Lw("$ra", "$sp", 0));
 		// deallocate activation frame
@@ -197,6 +200,20 @@ public class MIPSTranslator {
 		} else if (quad.operator.equals("*")) {
 			assembly.addInstruction(new Mult(quad.arg1, quad.arg2));
 			assembly.addInstruction(new Mflo(quad.result));
+		} else if (quad.operator.equals("&&")) {
+			assembly.addInstruction(new And(quad.result, quad.arg1, quad.arg2));
+		} else if (quad.operator.equals("<")) {
+			// default to assuming true
+			assembly.addInstruction(new Li(quad.result, -1));
+			// where to jump if it's less than
+			String endLabel = curMethodIR.canonicalMethodName() + "_b" + booleanLabelCount + "_end";
+			booleanLabelCount++;
+			assembly.addInstruction(new Blt(quad.arg1, quad.arg2, endLabel));
+			assembly.addInstruction(new Li(quad.result, 0));
+			// create no-op to synchronize on
+			Instruction endInstr = new Sll("$zero", "$zero", 0);
+			assembly.addInstruction(endInstr);
+			assembly.addLabel(endLabel, endInstr);
 		}
 	}
 

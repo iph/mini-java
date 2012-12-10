@@ -43,6 +43,7 @@ public class RegisterAllocator{
         coloredVars = new HashMap<String, Register>();
         precolor();
         resolveMoves();
+        System.out.println(method);
     }
 
     public void rebuild(){
@@ -59,7 +60,6 @@ public class RegisterAllocator{
         potentialMoves = new HashSet<String>();
         coloredVars = new HashMap<String, Register>();
         precolor();
-        resolveMoves();
 
     }
 
@@ -204,7 +204,10 @@ public class RegisterAllocator{
                 }
             }
             if(fixedSpills){
+                System.out.println(method);
                 rewriteVariables();
+                System.out.println("AFTER~~~~~~~~~~~~~~~~~~~`");
+                System.out.println(method);
                 return;
             }
             else{
