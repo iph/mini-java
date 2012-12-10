@@ -67,8 +67,8 @@ public class MIPSRegisterAllocator {
             else{
                 Quadruple q = new Quadruple(InstructionType.LOAD);
                 q.result = methodAttrs.getParameter(i).getIdentifier();
-                q.arg1 = ("$sp");
-                q.arg2 = "" + (-8 + (i-4)*4);
+                q.arg1 = ("$fp");
+                q.arg2 = "" + (8 + (i-3)*4);
                 method.insertQuad(0, q);
             }
         }
