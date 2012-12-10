@@ -29,10 +29,11 @@ public class MethodAttribute extends Attribute {
     public void getInMyScope(SymbolTable table){
        for(String id: vars.keySet()){
            table.put(id, vars.get(id));
+           table.putVar(id, vars.get(id));
        }
-       //TODO Write params here as well.
        for(String id: parameterList.keySet()){
             table.put(id, parameterList.get(id));
+            table.putVar(id, parameterList.get(id));
        }
     }
 

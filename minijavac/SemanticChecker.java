@@ -226,7 +226,7 @@ public class SemanticChecker implements SemanticVisitor {
     }
     public String visit(IdentifierExp n) {
         // has the identifier we're using been defined? If so, is it a method/class?
-        if (!environment.hasId(n.s) || !(environment.get(n.s) instanceof VariableAttribute)) {
+        if (!environment.hasId(n.s) || !(environment.getVar(n.s) instanceof VariableAttribute)) {
             MJToken token = location.get(n);
             System.out.printf("Use of undefined identifier %s at line %d, character %d\n", n.s, token.line, token.column);
             hasError = true;
@@ -236,7 +236,7 @@ public class SemanticChecker implements SemanticVisitor {
             return "";
         }
 
-        return ((VariableAttribute)environment.get(n.s)).getType();
+        return ((VariableAttribute)environment.getVar(n.s)).getType();
     }
 
     public String visit(This n) {
@@ -458,7 +458,7 @@ public class SemanticChecker implements SemanticVisitor {
             return;
         }
 
-        Attribute attr = (Attribute)environment.get(n.i.s);
+        Attribute attr = (Attribute)environment.getVar(n.i.s);
         //Check for left value assignment of this or class/method name.
         if (n.i.s.equals("this") || !(attr instanceof VariableAttribute)) {
             MJToken token = location.get(n);

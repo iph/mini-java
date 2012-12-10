@@ -3,12 +3,14 @@ package minijavac;
 import java.util.*;
 
 public class SymbolTable {
-	private HashMap<String, LinkedList<Object>> environment;
-    private Stack<String> symbolStack;
+	private HashMap<String, LinkedList<Object>> environment, varEnvironment;
+    private Stack<String> symbolStack, varStack;
 
 	public SymbolTable() {
         environment = new HashMap<String, LinkedList<Object>>();
+        varEnvironment = new HashMap<String, LinkedList<Object>>();
         symbolStack = new Stack<String>();
+        varStack = new Stack<String>();
 	}
 
     public String toString(){
@@ -19,6 +21,7 @@ public class SymbolTable {
      */
     public void startScope(){
         symbolStack.push(null);
+        varStack.push(null);
     }
 
     /*
@@ -40,6 +43,21 @@ public class SymbolTable {
 
         symbols.push(value);
     }
+    public void putVar(String id, Object value){
+        if(id == null){
+            System.err.println("ID Was null, which is the same as the symbol stack. GET OUT!");
+            System.exit(0);
+        }
+        varStack.push(id);
+
+        LinkedList<Object> symbols = varEnvironment.get(id);
+        if(symbols == null){
+            symbols = new LinkedList<Object>();
+            varEnvironment.put(id, symbols);
+        }
+
+        symbols.push(value);
+    }
 
     /*
      * Gets the first object in the linked list, if there is one!
@@ -53,6 +71,16 @@ public class SymbolTable {
             return symbols.peek();
         }
     }
+    public Object getVar(String id){
+        LinkedList<Object> symbols = varEnvironment.get(id);
+        if(symbols == null){
+            return null;
+        }
+        else{
+            return symbols.peek();
+        }
+    }
+
 
     public Object getRoot(String id){
         LinkedList<Object> symbols = environment.get(id);
@@ -77,11 +105,21 @@ public class SymbolTable {
             }
             currentSymbol = symbolStack.pop();
         }
+        currentSymbol = varStack.pop();
+        while(currentSymbol != null){
+            LinkedList<Object> poppable = varEnvironment.get(currentSymbol);
+            poppable.pop();
+            if(poppable.size() == 0){
+                varEnvironment.remove(currentSymbol);
+            }
+            currentSymbol = varStack.pop();
+        }
+
 
     }
 
     public boolean hasId(String id){
-        return environment.containsKey(id);
+        return environment.containsKey(id) || varEnvironment.containsKey(id);
     }
 
     public Set<String> keys(){
