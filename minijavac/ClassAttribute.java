@@ -131,6 +131,7 @@ public class ClassAttribute extends Attribute {
         // precedence
         for(String id: variables.keySet()){
             table.put(id, variables.get(id));
+            table.putVar(id, variables.get(id));
         }
         for(String id: methods.keySet()){
             table.put(id, methods.get(id));
