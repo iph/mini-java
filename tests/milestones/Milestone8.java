@@ -17,6 +17,8 @@ class Test2 {
 		ChildObject childObj;
 		SecondChildObject secondChildObj;
 		int i;
+		int throwawayInt;
+		boolean throwawayBool;
 
 		obj = new Object();
 		objVal = obj.Init(9);
@@ -26,11 +28,14 @@ class Test2 {
 		childObjVal = childObj.InitChild();
 
 		obj = new ChildObject();
-		i = obj.InitChild();
+		throwawayInt = obj.InitChild();
 		childObjParentValAgain = obj.getVal();
 
 		secondChildObj = new SecondChildObject();
 		secondChildObjVal = secondChildObj.InitChild(3);
+
+		throwawayInt = this.TestObjectParams();
+		throwawayBool = this.TestArrayParams();
 
 		arr = new int[10];
 		i = 0;
@@ -41,6 +46,87 @@ class Test2 {
 
 		// 9 + 6 + 6 + 3 + 3 + 9 
 		return objVal + childObjParentVal + childObjParentValAgain + childObjVal + secondChildObjVal + arr[i];
+	}
+
+	public int TestObjectParams() {
+		NewObject n;
+		NewObject n1;
+		NewObject n2;
+		NewObject n3;
+		NewObject n4;
+		boolean success;
+		int ret;
+
+		n = new NewObject();
+		n1 = n.NewObject();
+		n2 = n.NewObject();
+		n3 = n.NewObject();
+		n4 = n.NewObject();
+
+		success = n.connect(n1, n2, n3, n4);
+		if (success) {
+			ret = n.setVal(9);
+			ret = n1.getVal();
+		} else {
+			ret = n.setVal(0);
+			ret = n1.getVal();
+		}
+		return ret;
+	}
+
+	public boolean TestArrayParams() {
+		int[] a1;
+		int[] a2;
+		int[] a3;
+		int[] a4;
+
+		a1 = new int[5];
+		a2 = new int[5];
+		a3 = new int[5];
+		a4 = new int[5];
+
+		a1[0] = 2;
+		a2[1] = 2;
+		a3[2] = 2;
+		a4[3] = 3;
+
+		return this.sumArrays(a1, a2, a3, a4);
+	}
+
+	public boolean sumArrays(int[] a1, int[] a2, int[] a3, int[] a4) {
+		int len;
+		int sum;
+		int i;
+
+		len = a1.length;
+		i = 0;
+		while (i < len) {
+			sum = sum + a1[i];
+			i = i + 1;
+		}
+
+		len = a2.length;
+		i = 0;
+		while (i < len) {
+			sum = sum + a2[i];
+			i = i + 1;
+		}
+
+		len = a3.length;
+		i = 0;
+		while (i < len) {
+			sum = sum + a3[i];
+			i = i + 1;
+		}
+
+		len = a4.length;
+		i = 0;
+		while (i < len) {
+			sum = sum + a4[i];
+			i = i + 1;
+		}
+
+		return sum;
 	}
 }
 
@@ -86,5 +172,42 @@ class SecondChildObject extends Object {
 		val = v;
 
 		return val;
+	}
+}
+
+class NewObject {
+	Object obj;
+	NewObject newObj;
+	int val;
+	int[] vals;
+
+	public NewObject NewObject() {
+		NewObject nObj;
+		int temp;
+
+		nObj = new NewObject();
+		temp = nObj.setVal(1);
+		return nObj;
+	} 
+
+	public boolean connect(NewObject nObj1, NewObject nObj2, NewObject nObj3, NewObject nObj4) {
+		newObj1 = this.getNewObj();
+		newObj2 = newObj;
+		newObj3 = newObj;
+		newObj4 = newObj;
+
+		return !false;
+	}
+
+	public int setVal(int v) {
+		val = v;
+	}
+
+	public int getVal() {
+		return val;
+	}
+
+	public NewObject getNewObj() {
+		return newObj;
 	}
 }
