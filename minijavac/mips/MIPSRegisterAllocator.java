@@ -12,7 +12,7 @@ public class MIPSRegisterAllocator {
 
 	public MIPSRegisterAllocator(SymbolTable symTable, MIPSFrameAllocator frameAlloc) {
 		symbolTable = symTable;
-		frameAllocator = frameAllocator;
+		this.frameAllocator = frameAlloc;
 		regAllocators = new HashMap<String, RegisterAllocator>();
 	}
 
@@ -23,7 +23,8 @@ public class MIPSRegisterAllocator {
 			MethodIR methodIR = ir.getMethodIR(i);
 			String canonName = methodIR.canonicalMethodName();
 			// graph color the method's ir to find optimal register use
-			RegisterAllocator regAlloc = new RegisterAllocator(methodIR, frameAllocator.getFrame(canonName));
+            MIPSFrame herp = frameAllocator.getFrame(canonName);
+			RegisterAllocator regAlloc = new RegisterAllocator(methodIR, herp);
 			regAlloc.color();
 			regAllocators.put(canonName, regAlloc);
 		}

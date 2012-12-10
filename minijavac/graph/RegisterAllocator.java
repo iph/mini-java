@@ -28,6 +28,7 @@ public class RegisterAllocator{
         this.method = method;
         canWrite = true;
         frame = f;
+        System.out.println("Hi");
         rewriteParams();
         live = new Live(method);
         live.computeLiveness();
@@ -182,7 +183,7 @@ public class RegisterAllocator{
             if(addedNode == -1){
                 boolean coal = coalesce();
                 if(!coal){
-                    markPotentialSpill();
+                    //markPotentialSpill();
                     canWrite = false;
                     System.out.println("SPILL!");
                 }
