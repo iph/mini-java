@@ -14,7 +14,7 @@ public class RegisterAllocator{
     };
     public static final int K = colorable.length;
     InterferenceGraph ifg;
-    Set<String> inStack, precoloredVars, precolorsFound, potentialMoves;
+    Set<String> inStack, precoloredVars, precolorsFound, potentialMoves, potentialSpills;
     Stack<String> uncoloredVars;
     Live live;
     Map<String, Register> coloredVars;
@@ -28,6 +28,7 @@ public class RegisterAllocator{
         this.method = method;
         canWrite = true;
         frame = f;
+        System.out.println("Hi");
         rewriteParams();
         live = new Live(method);
         live.computeLiveness();
@@ -36,6 +37,7 @@ public class RegisterAllocator{
         uncoloredVars = new Stack<String>();
         coalescedQuads = new HashMap<Quadruple, Quadruple>();
         precoloredVars = new HashSet<String>();
+        potentialSpills = new HashSet<String>();
         precolorsFound = new HashSet<String>();
         potentialMoves = new HashSet<String>();
         coloredVars = new HashMap<String, Register>();
@@ -181,7 +183,7 @@ public class RegisterAllocator{
             if(addedNode == -1){
                 boolean coal = coalesce();
                 if(!coal){
-                    markPotentialSpill();
+                    //markPotentialSpill();
                     canWrite = false;
                     System.out.println("SPILL!");
                 }
