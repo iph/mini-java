@@ -12,7 +12,7 @@ class Test2 {
 	public int Recursive(int y) {
 		int val;
 
-		if (y < 9) {
+		if (y < 9 && -1 < y) {
 			val = this.Recursive(y + 1);
 		} else {
 			val = 9;
