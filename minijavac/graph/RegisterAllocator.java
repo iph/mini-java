@@ -86,6 +86,8 @@ public class RegisterAllocator{
                     method.insertQuad(i+2, q);
                     i += 2;
                 }
+                else{
+                }
             }
             size = method.size();
         }
@@ -98,6 +100,7 @@ public class RegisterAllocator{
         int paramsPlace = 0;
         while(place > 0 && method.getQuad(place).getType() == InstructionType.PARAM){
             place--;
+            System.out.println("Shifted 1");
         }
         place++;
         if(paramsAmount > 4){
@@ -114,8 +117,8 @@ public class RegisterAllocator{
             method.insertQuad(place+1, q);
             amountShifted += 2;
             place += 1;
+            place ++;
         }
-        place ++;
         // We are all setup to start pushing params on.
         while(method.getQuad(place).getType() == InstructionType.PARAM){
             if(paramsPlace < 4){
@@ -183,9 +186,8 @@ public class RegisterAllocator{
             if(addedNode == -1){
                 boolean coal = coalesce();
                 if(!coal){
-                    //markPotentialSpill();
+                    markPotentialSpill();
                     canWrite = false;
-                    System.out.println("SPILL!");
                 }
             }
         }
@@ -314,6 +316,12 @@ public class RegisterAllocator{
         }
     }
 
+    private void markPotentialSpill(){
+
+        for(String var: ifg.vars()){
+
+        }
+    }
     private void restoreState(){
         if(!canWrite){
             for(int i = 0; i < method.size(); i++){
