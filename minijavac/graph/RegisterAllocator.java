@@ -181,22 +181,39 @@ public class RegisterAllocator{
     }
 
     public void color(){
-        while(inStack.size() + precolorsFound.size() < ifg.vars().size()){
-            int addedNode = simplify();
-            if(addedNode == -1){
-                boolean coal = coalesce();
-                if(!coal){
-                    markPotentialSpill();
-                    canWrite = false;
+        while(true){
+            while(inStack.size() + precolorsFound.size() + potentialSpills.size() < ifg.vars().size()){
+                int addedNode = simplify();
+                if(addedNode == -1){
+                    boolean coal = coalesce();
+                    if(!coal){
+                        markPotentialSpill();
+                        canWrite = false;
+                    }
                 }
             }
-        }
 
-        while(uncoloredVars.size() > 0){
-            select();
-        }
+            while(uncoloredVars.size() > 0){
+                select();
+            }
 
-        rewriteVariables();
+            boolean fixedSpills = true;
+            while(potentialSpills.size() > 0){
+                fixedSpills &= selectSpill();
+                if(!fixedSpills){
+                    break;
+                }
+            }
+            if(fixedSpills){
+                rewriteVariables();
+                return;
+            }
+            else{
+               spill();
+               undoCoalesces();
+               rebuild();
+            }
+        }
     }
 
     private boolean coalesce(){
@@ -296,7 +313,7 @@ public class RegisterAllocator{
                 precolorsFound.add(var);
                 continue;
             }
-            if(potentialMoves.contains(var)){
+            if(potentialMoves.contains(var) || potentialSpills.contains(var)){
                 continue;
             }
             int currK = kNeighbors(var);
@@ -316,23 +333,57 @@ public class RegisterAllocator{
         }
     }
 
-    private void markPotentialSpill(){
+    private void spill(){
+        //Identify the def instructions of node.
+        String varToSpill =(String)potentialSpills.toArray()[0];
+        frame.allocate(varToSpill);
+        int offset = frame.get(varToSpill);
+        int size = method.size();
+        for(int i = 0; i < size; i++){
+            Quadruple quad = method.getQuad(i);
 
-        for(String var: ifg.vars()){
+            if(quad.result.equals(varToSpill)){
+                //Make a new quad after this quad to store it.
+                Quadruple storeQuad = new Quadruple(InstructionType.STORE);
+                storeQuad.arg1 = method.nextTempVar();
+                storeQuad.result = "$fp";
+                storeQuad.arg2 = ""+offset;
+                method.insertQuad(i+1, storeQuad);
+                quad.result = storeQuad.arg1;
+            }
 
+            if(quad.arg1.equals(varToSpill)){
+                Quadruple loadQuad = new Quadruple(InstructionType.LOAD);
+                loadQuad.result = method.nextTempVar();
+                loadQuad.arg1 = "$fp";
+                loadQuad.arg2 = "" + offset;
+                quad.arg1 = loadQuad.result;
+                method.insertQuad(i-1, loadQuad);
+            }
+
+            if(quad.arg2.equals(varToSpill)){
+                Quadruple loadQuad = new Quadruple(InstructionType.LOAD);
+                loadQuad.result = method.nextTempVar();
+                loadQuad.arg1 = "$fp";
+                loadQuad.arg2 = "" + offset;
+                quad.arg2 = loadQuad.result;
+                method.insertQuad(i-1, loadQuad);
+            }
+            size = method.size();
         }
     }
-    private void restoreState(){
-        if(!canWrite){
-            for(int i = 0; i < method.size(); i++){
-                Quadruple quad = method.getQuad(i);
-                if(coalescedQuads.containsKey(quad)){
-                    method.replaceQuadAt(i, coalescedQuads.get(quad));
-                }
+    private void markPotentialSpill(){
+        int mostK = 0;
+        String varToSpill = null;
+        for(String var: ifg.vars()){
+            int kCurr = kNeighbors(var);
+            if(kCurr > mostK && !precoloredVars.contains(var)){
+                varToSpill = var;
+                mostK = kCurr;
             }
         }
 
-
+        potentialSpills.add(varToSpill);
     }
     /* Checks to see whether a variable can be colored a certain color.
      *
@@ -354,7 +405,7 @@ public class RegisterAllocator{
     private int kNeighbors(String n){
         int count = 0;
         for(String other: ifg.adjacent(n)){
-            if(!inStack.contains(other)){
+            if(!inStack.contains(other) && !potentialSpills.contains(other)){
                 count++;
             }
         }
@@ -371,6 +422,19 @@ public class RegisterAllocator{
                 break;
             }
         }
+    }
+
+     private boolean selectSpill(){
+        String var = (String)potentialSpills.toArray()[0];
+        for(int i = 0; i < colorable.length; i++){
+            Register color = colorable[i];
+            if(!neighborHasColor(var, color)){
+                coloredVars.put(var, color);
+                potentialSpills.remove(var);
+                return true;
+            }
+        }
+        return false;
     }
     private void rewriteVariables(){
        for(Quadruple quad: method){

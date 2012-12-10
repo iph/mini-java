@@ -19,6 +19,9 @@ public class MIPSFrame {
     }
 
     public void allocate(String varName){
+        if(offset.containsKey(varName)){
+            return;
+        }
         offset.put(varName, size);
         size += 4;
 
